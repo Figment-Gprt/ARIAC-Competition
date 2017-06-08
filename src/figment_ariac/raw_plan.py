@@ -49,7 +49,7 @@ def main():
         rospy.loginfo("\n\nNo orders yet. Sleeping while orders arribe")
         rospy.sleep(1.0)
 
-    comp_class.initial_position()
+    comp_class.go_to_initial_position()
 
     rospy.loginfo("\n\nInitial competition state: " + str(comp_class.current_comp_state))
  

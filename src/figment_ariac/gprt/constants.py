@@ -78,5 +78,5 @@ OBJECT_HEIGHT = {
 
 this_dir = os.path.abspath(os.path.dirname(__file__))
 template_files = [
-    os.path.join(this_dir, '..', '..', 'config', 'figment_gear_conf.yaml')
+    os.path.join(this_dir, '..', '..', '..', 'config', 'figment_gear_conf.yaml')
 ]

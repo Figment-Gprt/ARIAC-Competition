@@ -1,19 +1,4 @@
 #!/usr/bin/env python
-# Copyright 2016 Open Source Robotics Foundation, Inc.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
-
 from __future__ import print_function
 
 import time
@@ -39,160 +24,9 @@ from tf2_msgs.msg import TFMessage
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 from geometry_msgs.msg import Pose, TransformStamped
 
+import order_utils
 
-
-
-
-
-
-def camera_callback(msg, objs):
-    
-    camera_id, gprt = objs
-    objects_hash = str(hash("".join([obj.type for obj in msg.models])))
-    if global_vars.logical_cameras[camera_id]["hash"] != objects_hash:
-        global_vars.logical_cameras[camera_id]["hash"] = objects_hash
-        if camera_id == BIN_CAMERA["belt"]:
-            if len(msg.models) > 0:
-            #     control_belt = actions.ActionBeltControl(0)
-            #     rospy.sleep(0.5)
-            #     gprt.beltState = False
-            # else:
-            #     control_belt = actions.ActionBeltControl(100)
-            #     gprt.beltState = True
-                # y_max = 10
-                for model in msg.models:
-                    if "part" in model.type:
-                        gprt.beltState = False
-                    else:
-                        gprt.beltState = True
-                        # if model.pose.position.y < y_max:
-                        #     y_max = model.pose.position.y
-                        #     global_vars.belt_pieces[model.type] = (model.pose, time.time())
-                # print(global_vars.belt_pieces)
-            # control_belt.execute_action()
-        global_vars.logical_cameras[camera_id]["models"] = msg.models
-        global_vars.logical_cameras[camera_id]["camera_position"] = msg.pose
-
-
-def setup_sensors(gprt):
-    
-    stream = file(template_files[0], 'r')
-    config_file = yaml.load(stream)
-    # rospy.loginfo("%s" % config_file)
-    sensors = config_file['sensors']
-    for k, sensor in sensors.items():
-        if sensor['type'] == "break_beam":
-            pass
-        elif sensor['type'] == "proximity_sensor":
-            pass
-        elif sensor['type'] == "laser_profiler":
-            pass
-        elif sensor['type'] == "logical_camera":
-            subscribe_path = "/ariac/" + str(k)
-            rospy.loginfo("camera " + subscribe_path + " added.")
-            global_vars.logical_cameras[k] = {
-                "hash": 0,
-                "models": [],
-                "camera_position": None
-            }
-            camera_sub = rospy.Subscriber(
-                subscribe_path, LogicalCameraImage, callback=camera_callback, callback_args=(k, gprt))
-
-
-def start_competition():
-    rospy.loginfo("Waiting for competition to be ready...")
-    rospy.wait_for_service('/ariac/start_competition')
-    rospy.loginfo("Competition is now ready.")
-    rospy.loginfo("Requesting competition start...")
-
-    try:
-        start = rospy.ServiceProxy('/ariac/start_competition', Trigger)
-        response = start()
-    except rospy.ServiceException as exc:
-        rospy.logerr("Failed to start the competition: %s" % exc)
-        return False
-    if not response.success:
-        rospy.logerr("Failed to start the competition: %s" % response)
-    else:
-        rospy.loginfo("Competition started!")
-    return response.success
-
-
-def control_gripper(enabled):
-    rospy.loginfo("Waiting for gripper control to be ready...")
-    rospy.wait_for_service('/ariac/gripper/control')
-    rospy.loginfo("Gripper control is now ready.")
-    rospy.loginfo("Requesting gripper control...")
-
-    try:
-        gripper_control = rospy.ServiceProxy(
-            '/ariac/gripper/control', VacuumGripperControl)
-        response = gripper_control(enabled)
-    except rospy.ServiceException as exc:
-        rospy.logerr("Failed to control the gripper: %s" % exc)
-        return False
-    if not response.success:
-        rospy.logerr("Failed to control the gripper: %s" % response)
-    else:
-        rospy.loginfo("Gripper controlled successfully")
-    return response.success
-
-
-def control_agv(index, kit_type):
-    rospy.loginfo("Waiting for AGV control to be ready...")
-    name = '/ariac/agv' + str(index)
-    rospy.wait_for_service(name)
-    rospy.loginfo("AGV control is now ready.")
-    rospy.loginfo("Requesting AGV control...")
-
-    try:
-        agv_control = rospy.ServiceProxy(name, AGVControl)
-        response = agv_control(kit_type)
-    except rospy.ServiceException as exc:
-        rospy.logerr("Failed to control the AGV: %s" % exc)
-        return False
-    if not response.success:
-        rospy.logerr("Failed to control the AGV: %s" % response)
-    else:
-        rospy.loginfo("AGV controlled successfully")
-    return response.success
-
-
-def moveit_calculation(position):
-    pass
-
-
-
-
-
-"""
-    FIX-IT: REDO 
-"""
-
-
-
-
-
-class KitObject:
-
-    def __init__(self, kit_objects, kit_type, order_id):
-        """
-        tray: tray id (1 or 2)
-        kit_objects: list of kit_objects received from order
-        kit_type: kit identifier
-        order_id: order id identifier
-        """
-        self.tray = None
-        self.kit_objects = kit_objects
-        self.kit_type = kit_type
-        self.order_id = order_id
-
-
-class State:
-    BUSY, FREE = range(2)
-
-
-class Gprt:
+class Competition:
 
     def __init__(self):
         self.joint_trajectory_publisher = \
@@ -216,7 +50,7 @@ class Gprt:
         # True when activated
         self.beltState = True
 
-    def initial_position(self):
+    def go_to_initial_position(self):
         global STATIC_POSITIONS
         msg = utils.createJointTrajectory(STATIC_POSITIONS["initial_position"], 0.5)
         rospy.loginfo("[initial_position] Send robot to the initial position")
@@ -482,10 +316,11 @@ class Gprt:
             rospy.loginfo("Competition state: " + str(msg.data))
         self.current_comp_state = msg.data
 
-    def order_callback(self, msg):
-        rospy.loginfo("Received order:\n" + str(msg))
-        self.received_orders.append(msg)
-        self.__process_order(msg)
+    def order_callback(self, ariac_order_msg):
+    	order = order_utils.Order(ariac_order_msg)    	
+        rospy.loginfo('New order received. {}'.format(order.get_full_repr()))
+        #self.received_orders.append(ariac_order_msg)
+        #self.__process_order(ariac_order_msg)
 
     def joint_state_callback(self, msg):
         if time.time() - self.last_joint_state_print >= 10:
@@ -509,49 +344,78 @@ class Gprt:
         pose = msg.pose  # camera position, DO NOT KNOW IF IT IS NEEDED
         self.faulty_sensor2 = msg.models
 
-    # def tf_callback(self, msg):
 
-    #     for transformSt in msg.transforms:
-    #         if "logical_camera" in transformSt.child_frame_id and transformSt.child_frame_id not in global_vars.tf_transforms:
-    #             global_vars.tf_transforms[transformSt.child_frame_id] = {
-    #                 "valid": True
-    #             }
-    #         if "logical_camera_5" in transformSt.child_frame_id and "_part" in transformSt.child_frame_id:
-    #             if(global_vars.belt_pieces.get(transformSt.child_frame_id) is None):
-    #                 ret = None
-    #                 timer = rospy.get_time()
-    #                 while ret == None or rospy.get_time()-timer <= 5:
-    #                     ret = utils.tf(toFrame='world', fromFrame=transformSt.child_frame_id)
-    #                     rospy.sleep(0.1)
-    #                 print ("tf calculus: ")
-    #                 print (transformSt.child_frame_id)
-    #                 global_vars.tf_dict[transformSt.child_frame_id] = (ret, rospy.get_time())
-    #                 print (global_vars.tf_dict)
-    #                 print ("<><><><><><><><><><><><>")
-    #             global_vars.belt_pieces[transformSt.child_frame_id] = True
-    #             p_type = "_".join(transformSt.child_frame_id.split("_")[3:5])
-    #             if p_type == "piston_rod":
-    #                 p_type = p_type + "_part"
-    #             value = global_vars.last_belt_piece.get(p_type)
-    #             # if value is not None and value != transformSt.child_frame_id:
-    #             #     global_vars.tf_transforms[value]["valid"] = False
-    #             global_vars.last_belt_piece[p_type] = transformSt.child_frame_id
-
-                # if(transformSt.transform.translation.y > -0.2):
-                #     global_vars.belt_pieces[transformSt.child_frame_id] = (transformSt.transform, rospy.Time.now())
-                #     p_type = "_".join(transformSt.child_frame_id.split("_")[3:5])
-                #     if p_type == "piston_rod":
-                #         p_type = p_type + "_part"
-                #     value = global_vars.last_belt_piece.get(p_type)
-                #     if value is not None and value != transformSt.child_frame_id:
-                #         print (value)
-                #         global_vars.tf_transforms[value]["valid"] = False
-                #     global_vars.last_belt_piece[p_type] = transformSt.child_frame_id
-
-                    # print (p_type)
-                    # print (global_vars.last_belt_piece)
+def camera_callback(msg, objs):
+    
+    camera_id, gprt = objs
+    objects_hash = str(hash("".join([obj.type for obj in msg.models])))
+    if global_vars.logical_cameras[camera_id]["hash"] != objects_hash:
+        global_vars.logical_cameras[camera_id]["hash"] = objects_hash
+        if camera_id == BIN_CAMERA["belt"]:
+            if len(msg.models) > 0:
+            #     control_belt = actions.ActionBeltControl(0)
+            #     rospy.sleep(0.5)
+            #     gprt.beltState = False
+            # else:
+            #     control_belt = actions.ActionBeltControl(100)
+            #     gprt.beltState = True
+                # y_max = 10
+                for model in msg.models:
+                    if "part" in model.type:
+                        gprt.beltState = False
+                    else:
+                        gprt.beltState = True
+                        # if model.pose.position.y < y_max:
+                        #     y_max = model.pose.position.y
+                        #     global_vars.belt_pieces[model.type] = (model.pose, time.time())
+                # print(global_vars.belt_pieces)
+            # control_belt.execute_action()
+        global_vars.logical_cameras[camera_id]["models"] = msg.models
+        global_vars.logical_cameras[camera_id]["camera_position"] = msg.pose
 
 
+def setup_sensors(gprt):
+    
+    stream = file(template_files[0], 'r')
+    config_file = yaml.load(stream)
+    # rospy.loginfo("%s" % config_file)
+    sensors = config_file['sensors']
+    for k, sensor in sensors.items():
+        if sensor['type'] == "break_beam":
+            pass
+        elif sensor['type'] == "proximity_sensor":
+            pass
+        elif sensor['type'] == "laser_profiler":
+            pass
+        elif sensor['type'] == "logical_camera":
+            subscribe_path = "/ariac/" + str(k)
+            rospy.loginfo("camera " + subscribe_path + " added.")
+            global_vars.logical_cameras[k] = {
+                "hash": 0,
+                "models": [],
+                "camera_position": None
+            }
+            camera_sub = rospy.Subscriber(
+                subscribe_path, LogicalCameraImage, callback=camera_callback, callback_args=(k, gprt))
+
+
+def start_competition():
+    rospy.loginfo("Waiting for competition to be ready...")
+    rospy.wait_for_service('/ariac/start_competition')
+    rospy.loginfo("Competition is now ready.")
+    rospy.loginfo("Requesting competition start...")
+
+    try:
+        start = rospy.ServiceProxy('/ariac/start_competition', Trigger)
+        response = start()
+    except rospy.ServiceException as exc:
+        rospy.logerr("Failed to start the competition: %s" % exc)
+        return False
+    if not response.success:
+        rospy.logerr("Failed to start the competition: %s" % response)
+    else:
+        rospy.loginfo("Competition started!")
+    return response.success
 
 def connect_callbacks(comp_class):
     rospy.loginfo("[connect_callbacks] setting comp_state_callback")
@@ -600,8 +464,3 @@ def init_global_vars(comp_class):
     # global_vars.tfBuffer = tf2_ros.Buffer(rospy.Duration(1200.0)) #tf buffer length
     # global_vars.tf_listener = tf2_ros.TransformListener(global_vars.tfBuffer) 
     global_vars.tf_manager = TfManager()
-
-
-
-
-
