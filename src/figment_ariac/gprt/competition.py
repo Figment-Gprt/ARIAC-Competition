@@ -31,12 +31,13 @@ import scheduler
 class Competition:
 
     def __init__(self):
-        self.joint_trajectory_publisher = \
-            rospy.Publisher("/ariac/arm/command",
-                            JointTrajectory, queue_size=5)
+        # REMOVE AFTER MERGE
+        # self.joint_trajectory_publisher = \
+        #     rospy.Publisher("/ariac/arm/command",
+        #                     JointTrajectory, queue_size=5)
+
         self.current_comp_state = None
         self.received_orders = []
-        self.current_joint_state = None
         self.current_gripper_state = None
         self.last_joint_state_print = time.time()
         self.last_gripper_state_print = time.time()
@@ -53,11 +54,11 @@ class Competition:
         self.beltState = True
         self.scheduler = scheduler.Scheduler(self)
 
-    def go_to_initial_position(self):
-        global STATIC_POSITIONS
-        msg = utils.createJointTrajectory(STATIC_POSITIONS["initial_position"], 0.5)
-        rospy.loginfo("[initial_position] Send robot to the initial position")
-        self.joint_trajectory_publisher.publish(msg)
+    # def go_to_initial_position(self):
+    #     global STATIC_POSITIONS
+    #     msg = utils.createJointTrajectory(STATIC_POSITIONS["initial_position"], 0.5)
+    #     rospy.loginfo("[initial_position] Send robot to the initial position")
+    #     self.joint_trajectory_publisher.publish(msg)
 
     def start_plan_and_execute(self):
         rospy.loginfo("[Competition] Starting plan and execute...")
@@ -331,10 +332,11 @@ class Competition:
         #self.__process_order(ariac_order_msg)
 
     def joint_state_callback(self, msg):
+        
         if time.time() - self.last_joint_state_print >= 10:
             # rospy.loginfo("Current Joint States (throttled to 0.1 Hz):\n" + str(msg))
             self.last_joint_state_print = time.time()
-        self.current_joint_state = msg
+        global_vars.current_joint_state = msg
 
     def gripper_state_callback(self, msg):
 
