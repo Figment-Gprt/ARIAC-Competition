@@ -7,7 +7,6 @@ import tf as transf
 import rospy
 import yaml
 import math
-import actions
 import utils
 import global_vars
 from tf_manager import *
@@ -67,7 +66,7 @@ class Competition:
     def joint_state_callback(self, msg):
         if time.time() - self.last_joint_state_print >= 10:
             self.last_joint_state_print = time.time()
-        self.current_joint_state = msg
+        global_vars.current_joint_state = msg
 
     def gripper_state_callback(self, msg):
 

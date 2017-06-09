@@ -14,6 +14,22 @@ from copy import deepcopy
 from trianglesolver import solve, degree
 
 from transform import Transform
+from enum import Enum
+
+
+class PickPlaces(Enum):
+    BELT    = "belt"
+    ANY_BIN = "bin*"
+    BIN1    = "bin1"
+    BIN2    = "bin2"
+    BIN3    = "bin3"
+    BIN4    = "bin4"
+    BIN5    = "bin5"
+    BIN6    = "bin6"
+    BIN7    = "bin7"
+    BIN8    = "bin8"
+    AGV1    = "agv1"
+    AGV2    = "agv2"
 
 def createJointTrajectory(angles, time):
     """

@@ -17,7 +17,7 @@
 import rospy, time, roslib
 import numpy as np
 
-from gprt import actions, global_vars, competition, arm_actions
+from gprt import global_vars, competition, arm_actions
 
 
 

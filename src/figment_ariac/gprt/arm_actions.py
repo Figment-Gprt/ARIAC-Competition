@@ -41,6 +41,7 @@ def go_to_bin_front(bin_id):
     Move to the front of the wanted bin_id.
     bin_id : key for the wanted bin to be used in the STATIC_POSITIONS MAP.
     """
+    
     set_arm_joint_values(STATIC_POSITIONS[bin_id], 1)
 
 
@@ -63,7 +64,7 @@ def go_to_position_a_bit_above_part(world_position, world_orientation, part_type
     angles = []
     if solver_type == SolverType.BIN:
         angles = solverBin(
-            world_position_above_part, world_orientation, part_type, ignoreHeight)
+            world_position_above_part, world_orientation, part_type, ignore_height)
     elif solver_type == SolverType.AGV1:
         angles = depositOnTray1(
             world_position_above_part, world_orientation, part_type)
@@ -107,10 +108,13 @@ def check_arm_joint_values_published(list_of_joint_values=None, static_position_
 
     final_joint_values = list_of_joint_values if list_of_joint_values is not None else STATIC_POSITIONS[static_position_key]
 
+    rospy.loginfo("[check_arm_joint_values_published]: final_joint_values:" + str(final_joint_values))
     inc_sleep = 0.1
     slept = 0
+    result = False
     while not result and slept < max_sleep:
-        position = global_vars.current_joint_state
+        position = global_vars.current_joint_state.position
+        rospy.loginfo("[check_arm_joint_values_published]: position: " + str(position))
         result, listRest = utils.comparePosition(
             position, final_joint_values, accError)
         if(not result):
