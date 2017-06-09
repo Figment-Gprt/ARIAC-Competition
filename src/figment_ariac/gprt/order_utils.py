@@ -137,6 +137,7 @@ class Part:
     	self.desired_pose = ariac_kitObject_msg.pose
     	self.state = Status.INIT
 
+
     def __str__(self):
 
         return 'Part id:{}; type:{}; desired_position: {}|{}|{}; desired_orientation:{}|{}|{}; state:{}'.format(
@@ -163,5 +164,8 @@ class Part:
 
     def execute(self):
     	rospy.loginfo("[Part] execute")
+
+
+
 
 

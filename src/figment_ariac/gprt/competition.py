@@ -26,6 +26,8 @@ from geometry_msgs.msg import Pose, TransformStamped
 
 import order_utils
 
+import scheduler
+
 class Competition:
 
     def __init__(self):
@@ -49,12 +51,17 @@ class Competition:
         self.faulty_sensor2 = []
         # True when activated
         self.beltState = True
+        self.scheduler = scheduler.Scheduler(self)
 
     def go_to_initial_position(self):
         global STATIC_POSITIONS
         msg = utils.createJointTrajectory(STATIC_POSITIONS["initial_position"], 0.5)
         rospy.loginfo("[initial_position] Send robot to the initial position")
         self.joint_trajectory_publisher.publish(msg)
+
+    def start_plan_and_execute(self):
+        rospy.loginfo("[Competition] Starting plan and execute...")
+        self.scheduler.execute()
 
     def __process_order(self, order):
         '''
@@ -313,12 +320,13 @@ class Competition:
 
     def comp_state_callback(self, msg):
         if self.current_comp_state != msg.data:
-            rospy.loginfo("Competition state: " + str(msg.data))
+            rospy.loginfo("[Competition] State CallBack - comp state: " + str(msg.data))
         self.current_comp_state = msg.data
 
     def order_callback(self, ariac_order_msg):
     	order = order_utils.Order(ariac_order_msg)    	
         rospy.loginfo('New order received. {}'.format(order.get_full_repr()))
+        self.scheduler.append_order(order)
         #self.received_orders.append(ariac_order_msg)
         #self.__process_order(ariac_order_msg)
 
