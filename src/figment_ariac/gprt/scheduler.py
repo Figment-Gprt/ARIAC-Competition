@@ -2,7 +2,21 @@
 import rospy
 import order_utils
 import execution
+from enum import Enum
 
+class PickPlaces(Enum):
+    BELT 	= 1
+    ANY_BIN = 2
+    BIN1 	= 3
+    BIN2 	= 4
+    BIN3 	= 5
+    BIN4 	= 6
+    BIN5 	= 7
+    BIN6 	= 8
+    BIN7 	= 9
+    BIN8 	= 10
+    AGV1 	= 11
+    AGV2 	= 12
 
 class PickPiece:
 
@@ -37,6 +51,28 @@ class PartPlan:
 		pass
 
 
+
+
+class WorkingAgv:
+
+	def __init__(self, agv_id):
+		self.agv_id = agv_id
+		self.reserved = False
+		self.reserved_for_kit = None
+
+	def reserve(kit):
+		self.reserved = True
+		self.reserved_for_kit = kit
+	
+	def release():
+		self.reserved = False
+		self.reserved_for_kit = None
+
+	def is_absent():
+		rospy.logerr("[WorkingAgv] get_status not implemented yet")
+		return False
+
+
 class Scheduler:
 
 
@@ -45,10 +81,18 @@ class Scheduler:
 		self.order_list = []
 		self.finished = False
 		self.competition = competition
+		self.configure_agvs()
+
+	#[TODO] Are we sure to have always two?
+	def configure_agvs(self):
+
+		agv1 = WorkingAgv(1)	
+		agv2 = WorkingAgv(2)
+		self.agvs = [agv1, agv2]
 
 
 	def append_order(self, order):
-		pass
+		self.order_list.append(order)
 
 	def isFinished(self):
 		return self.finished
@@ -75,8 +119,36 @@ class Scheduler:
 		while idx_high_priority > 0:
 			working_order = order_list[idx_high_priority] 
 			#Not sure yet what to do for other states (HALTED, ERROR)
-			if(working_order.get_status() is not order_utils.Status.FINISHED): 
+			if(working_order.get_status() is not order_utils.Status.DONE): 
 				return working_order
+
+	def get_plan_for_kit(self, kit):
+		rospy.logerr("[WorkingAgv] get_status not implemented yet")
+
+
+	def get_plan_for_part(working_part):
+		part_plan = working_part.part_plan
+		if(part_plan is not None):
+			return part_plan
+
+		parent_kit = working_part.parent_kit
+
+		kit_plan = 	parent_kit.kit_plan
+		if(kit_plan is None):
+			kit_plan = self.get_plan_for_kit(parent_kit)
+			if(kit_plan is None):
+				rospy.logerr("[Scheduler] get_plan_for_part kit_plan still None")
+				return
+
+
+		
+		pick_piece = PickPiece(PickPlaces.ANY_BIN, None, None)
+		part_plan = PartPlan(part = working_part, 
+						dest_tray_id = kit_plan.dest_tray_id, pick_piece=pick_piece)
+
+		return part_plan
+
+
 
 	def get_next_part_plan(self):
 		len_order_list = len(self.order_list)
@@ -102,13 +174,14 @@ class Scheduler:
 			rospy.logerr(working_order.get_full_repr())	
 			return
 
-		return working_part
+		part_plan = self.get_plan_for_part(working_part)
+		return part_plan
 
 	#Get first non finished part from kit
 	def get_frs_non_fin_part_from_kit(self, kit):
 		for part in kits.parts:
 			#Not sure yet what to do for other states (HALTED, ERROR)
-			if(part.get_status() is not order_utils.Status.FINISHED):
+			if(part.get_status() is not order_utils.Status.DONE):
 				return part
 		
 
@@ -117,7 +190,7 @@ class Scheduler:
 	def get_frs_non_fin_kit_from_ord(self, order):
 		for kit in order.kits:
 			#Not sure yet what to do for other states (HALTED, ERROR)
-			if(kit.get_status() is not order_utils.Status.FINISHED):
+			if(kit.get_status() is not order_utils.Status.DONE):
 				return kit
 
 

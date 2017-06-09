@@ -9,7 +9,7 @@ class Status(Enum):
     INIT = 1
     EXECUTING = 2
     HALTED = 3
-    FINISHED = 4
+    DONE = 4
     ERROR = 5
 
 
@@ -61,14 +61,40 @@ class Order:
     def get_status(self):
     	return self.state
 
+    def set_done(self):
+        self.state = Status.DONE
+
+    def get_kit_by_id(self, kit_id):
+        idx = 0
+        len_kits = len(self.kits)
+
+        while(idx < len_kits):
+            kit = self.kits[idx]  
+
+            if(kit_id == kit.kit_id):
+                return idx, kit
+
+            idx+=1    
+
+    
+    def deep_check_done(self):
+        for kit in kits:
+            if kit.get_status() is not ORDER_STATES.DONE:
+                return False
+        return True
+
+
+    def process_kit_done(self, kit):
+        if(self.deep_check_done()):
+            self.set_done()
+
+
     def reset(self):
     	for kit in self.kits:
     		kit.reset()
     	self.state = ORDER_STATES.INIT
 
 
-    def execute(self):
-    	rospy.loginfo("[Order] execute")
 
 class Kit:
 
@@ -120,13 +146,26 @@ class Kit:
     def get_status(self):
     	return self.state
 
+    def set_done(self):
+        self.state = Status.DONE
+        self.parent_order.process_kit_done(self)
+
+    def deep_check_done(self):
+        for part in parts:
+            if part.get_status() is not ORDER_STATES.DONE:
+                return False
+        return True
+
+    def process_part_done(self, part):
+        if(self.deep_check_done()):
+            self.set_done()
+
+
     def reset(self):
     	for part in self.parts:
     		part.reset()
     	self.state = KIT_STATES.INIT
 
-    def execute(self):
-    	rospy.loginfo("[Kit] execute")
 
 class Part:
 
@@ -162,8 +201,9 @@ class Part:
     def reset(self):
     	self.state = PART_STATES.INIT
 
-    def execute(self):
-    	rospy.loginfo("[Part] execute")
+    def set_done(self):
+        self.state = Status.DONE
+        self.parent_kit.process_part_done(self)
 
 
 
