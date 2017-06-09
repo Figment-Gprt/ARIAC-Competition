@@ -2,7 +2,7 @@
 
 
 def init():
-	global gripper_state, logical_cameras, tf_manager, belt_pieces, last_belt_piece, piece_pos, first_it, piece_clock, CheckTaskIsFinished, piece_final_position, partPicked
+	global gripper_state, logical_cameras, tf_manager, belt_pieces, last_belt_piece, piece_pos, first_it, piece_clock, CheckTaskIsFinished, piece_final_position, partPicked, current_joint_state
 
 	gripper_state = None
 
@@ -19,4 +19,5 @@ def init():
 	tf_manager = None
 	CheckTaskIsFinished = False
 	partPicked = False
+	current_joint_state = None
 	

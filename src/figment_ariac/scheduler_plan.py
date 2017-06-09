@@ -14,13 +14,11 @@
 # limitations under the License.
 
 
-import rospy
-import time
+import rospy, time, roslib
 import numpy as np
-import roslib
-from gprt import actions
-from gprt import global_vars
-from gprt import competition
+
+from gprt import actions, global_vars, competition, arm_actions
+
 
 
 
@@ -31,6 +29,7 @@ def main():
 
 
     comp_class = competition.Competition()
+    arm_actions.init()
 
     competition.init_global_vars(comp_class)
     competition.connect_callbacks(comp_class)
@@ -50,7 +49,7 @@ def main():
 
     #TODO Check if we really need to send to initial pos
     #only after and order is received.
-    comp_class.go_to_initial_position()
+    arm_actions.go_to_initial_position()
 
     rospy.loginfo("\n\nCompetition state after start: " + str(comp_class.current_comp_state))
  
