@@ -1235,19 +1235,6 @@ class ActionCheckAndDiscardPiece(Action):
             #action_tray.insert(len(action_tray) - 1, checkAction)
             action_tray.insert(0, checkAction)
 
-            # comp_class.process_order_into_actions(comp_class, action, action_list, action.kit_object, trayid, result, action.kit_type, False, True)
-
-            # rospy.loginfo("[ActionCheckAndDiscardPiece] len(action_tray) = " + str(len(action_tray)))
-            # rospy.loginfo("[ActionCheckAndDiscardPiece] new action_tray = " + str(action_tray))
-            # action_tray.append(checkAction)
-
-            # self.gprt.__process_initial_actions_into_stack(self.action.kit_object, action_tray, self.action.kit_type)
-
-            # result = self.action.execute_action()
-            # self.comp_class.process_order_into_actions(self.comp_class,
-            #     self.action, self.actionsList, self.action.kit_object,
-            #     self.tray_id, result, self.action.kit_type, self.last, False)
-            
         else:
             rospy.logerr("[ActionCheckAndDiscardPiece] - Piece OK")
 
