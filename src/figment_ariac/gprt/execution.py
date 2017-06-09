@@ -9,15 +9,16 @@ class ExecutePart:
     def execute(self):
         # check where the part is, bin or belt
         part_origin = self.partPlan.pick_piece.origin
+        part_origin = part_origin.value
 
         # if part is on the bin:
-        if "bin" in origin:
+        if "bin" in part_origin:
 
             # 1 - move to static position near the bin
-            arm_actions.go_to_bin_front(origin)
+            arm_actions.go_to_bin_front(part_origin)
 
             # checking joint states
-            arm_actions.check_arm_joint_values_published(static_position_key=origin)
+            arm_actions.check_arm_joint_values_published(static_position_key=part_origin)
 
 
             # 2 - move to position a bit above the part
@@ -30,7 +31,7 @@ class ExecutePart:
              world_orientation=part_word_orientation,
              part_type=part_type, 
              time_to_execute_action=3, 
-             arm_actions.SolverType.BIN)
+             solver_type=arm_actions.SolverType.BIN)
 
             arm_actions.check_arm_joint_values_published(list_of_joint_values=list_joint_values)
 
@@ -39,11 +40,11 @@ class ExecutePart:
 
 
         # if part is on the belt
-        elif "belt" in origin:
+        elif "belt" in part_origin:
             pass
 
         # if part is on the tray
-        elif "tray" in origin:
+        elif "tray" in part_origin:
             pass
 
 

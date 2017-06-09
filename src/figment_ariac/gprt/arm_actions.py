@@ -105,7 +105,7 @@ def check_arm_joint_values_published(list_of_joint_values=None, static_position_
     accError - Acceptable error for each joint
     """
 
-    final_joint_values = list_of_joint_values if list_of_joint_values not None else STATIC_POSITIONS[static_position_key]
+    final_joint_values = list_of_joint_values if list_of_joint_values is not None else STATIC_POSITIONS[static_position_key]
 
     inc_sleep = 0.1
     slept = 0

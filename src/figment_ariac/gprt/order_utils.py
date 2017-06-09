@@ -24,6 +24,7 @@ class Order:
 
     	self.state = Status.INIT
 
+
     def __str__(self):
 
         return 'Order id:{}; #kits:{}; state:{}'.format(
@@ -105,6 +106,7 @@ class Kit:
     	self.parts = []
     	self.append_parts(self.parts, ariac_kit_msg.objects)
     	self.state = Status.INIT
+        self.plan = None
 
     def __str__(self):
 
@@ -175,6 +177,7 @@ class Part:
     	self.part_type = ariac_kitObject_msg.type
     	self.desired_pose = ariac_kitObject_msg.pose
     	self.state = Status.INIT
+        self.plan = None
 
 
     def __str__(self):

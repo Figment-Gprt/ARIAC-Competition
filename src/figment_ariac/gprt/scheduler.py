@@ -6,17 +6,17 @@ from enum import Enum
 
 class PickPlaces(Enum):
     BELT 	= 1
-    ANY_BIN = 2
-    BIN1 	= 3
-    BIN2 	= 4
-    BIN3 	= 5
-    BIN4 	= 6
-    BIN5 	= 7
-    BIN6 	= 8
-    BIN7 	= 9
-    BIN8 	= 10
-    AGV1 	= 11
-    AGV2 	= 12
+    ANY_BIN = "bin*"
+    BIN1 	= "bin1"
+    BIN2 	= "bin2"
+    BIN3 	= "bin3"
+    BIN4 	= "bin4"
+    BIN5 	= "bin5"
+    BIN6 	= "bin6"
+    BIN7 	= "bin7"
+    BIN8 	= "bin8"
+    AGV1 	= "agv1"
+    AGV2 	= "agv2"
 
 class PickPiece:
 
@@ -116,24 +116,34 @@ class Scheduler:
 		len_order_list = len(self.order_list)		
 		idx_high_priority = len_order_list-1 #Last means high priority
 
-		while idx_high_priority > 0:
-			working_order = order_list[idx_high_priority] 
+		while idx_high_priority >= 0:
+			working_order = self.order_list[idx_high_priority] 
 			#Not sure yet what to do for other states (HALTED, ERROR)
 			if(working_order.get_status() is not order_utils.Status.DONE): 
 				return working_order
+			idx_high_priority-=1
+
+	def get_available_agv(self):
+		rospy.logerr("[WorkingAgv] get_available_agv not implemented yet")	
+		return self.agvs[0]
 
 	def get_plan_for_kit(self, kit):
-		rospy.logerr("[WorkingAgv] get_status not implemented yet")
+
+		rospy.logerr("[WorkingAgv] get_plan_for_kit not implemented yet")
+		working_agv = self.get_available_agv()
+		kit_plan = KitPlan(kit=kit, dest_tray_id=working_agv.agv_id, list_part_plan=None)
+		return kit_plan
 
 
-	def get_plan_for_part(working_part):
-		part_plan = working_part.part_plan
+	def get_plan_for_part(self, working_part):
+
+		part_plan = working_part.plan
 		if(part_plan is not None):
 			return part_plan
 
 		parent_kit = working_part.parent_kit
 
-		kit_plan = 	parent_kit.kit_plan
+		kit_plan = 	parent_kit.plan
 		if(kit_plan is None):
 			kit_plan = self.get_plan_for_kit(parent_kit)
 			if(kit_plan is None):
@@ -179,14 +189,14 @@ class Scheduler:
 
 	#Get first non finished part from kit
 	def get_frs_non_fin_part_from_kit(self, kit):
-		for part in kits.parts:
+		for part in kit.parts:
 			#Not sure yet what to do for other states (HALTED, ERROR)
 			if(part.get_status() is not order_utils.Status.DONE):
 				return part
 		
 
 
-	#Get first non finished part from kit
+	#Get first non finished kit from order
 	def get_frs_non_fin_kit_from_ord(self, order):
 		for kit in order.kits:
 			#Not sure yet what to do for other states (HALTED, ERROR)
