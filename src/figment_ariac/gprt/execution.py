@@ -8,11 +8,145 @@ from utils import PickPlaces
 from constants import *
 import gripper_actions
 
+class ExecBin:
+
+    def __init__(self, part_plan, exec_part):
+        self.part_plan = part_plan
+        self.exec_part = exec_part
+
+    def execute(self):
+
+        exec_step = 0
+        failed_comple = False
+        done = False
+
+###################       STEP 0       ##########################################        
+
+        while(not failed_comple and not done and not self.exec_part.isInterupted()):
+
+            if(exec_step <= 0): #STEP 0 - Setup env
+                part_origin = self.part_plan.pick_piece.origin.value
+                part_type = self.part_plan.part.part_type
+                part_world_position = self.part_plan.pick_piece.world_position
+                part_world_orientation = self.part_plan.pick_piece.world_orientation 
+
+                exec_step =+1 #STEP 0 - DONE
+
+###################       STEP 1       ##########################################
+
+            if(exec_step <= 1 and not self.exec_part.isInterupted()): #STEP 1 - Check Any BIN
+
+                if part_origin == PickPlaces.ANY_BIN.value:
+                    rospy.loginfo("\n\n[ExecutePart]: STEP 1 \n")
+                    # step 0 - get available pose for a part on any bin
+                    camera_id, part_id = global_vars.tf_manager.find_part_name(part_type)
+                    if(camera_id is None or part_id is None):
+                        rospy.loginfo(
+                            "[ExecutePart]:Failed. No available part {} found".format(part_type))
+                        self.part_plan.part.reset()
+                        return False
+                    r = self.exec_part.find_part_any_bin(camera_id, part_id, part_type)
+                    if(r is None):
+                        rospy.loginfo(
+                            "[ExecutePart]:Failed. No available part {} found".format(part_type))
+                        self.part_plan.part.reset()
+                        return False
+                    part_world_position, part_world_orientation = r
+
+                    exec_step =+1 #STEP 1 - DONE
+
+###################       STEP 2       ##########################################  
+
+            if(exec_step <= 2 and not self.exec_part.isInterupted()): #STEP 2 - Check Any BIN                  
+                
+                rospy.loginfo("\n\n[ExecutePart]: STEP 2 \n")
+                # step 1 - move to position in front of the piece
+                success = self.exec_part.move_wait_front_part(part_world_position)
+                if not success:
+                    rospy.loginfo("[ExecutePart]: step2 failed. Reseting")
+                    self.part_plan.part.reset()
+                    return False
+
+                exec_step =+1 #STEP 2 - DONE
+
+###################       STEP 3       ##########################################                     
+
+            if(exec_step <= 3 and not self.exec_part.isInterupted()): #STEP 3 - move to position a bit above the part
+
+                rospy.loginfo("\n\n[ExecutePart]: STEP 3 \n")
+                max_attempt = 3
+                attempt = 0
+                success = False
+                while(attempt < max_attempt and not success):            
+                    success = self.exec_part.move_wait_above_part(part_world_position, 
+                                                        part_world_orientation, 
+                                                        part_type)
+                    if not success: 
+                        attempt +=1           
+                        rospy.loginfo("[ExecutePart]: step3 failed. attempt#" + str(attempt))
+
+                if not success:                 
+                    rospy.loginfo("[ExecutePart]: step3 failed completly" + str(attempt))
+                    global_vars.tf_manager.add_part_id_to_bl(part_id)
+                    self.part_plan.part.reset()
+                    return False
+
+                exec_step =+1 #STEP 3 - DONE
+
+###################       STEP 4       ########################################## 
+
+            if(exec_step <= 4 and not self.exec_part.isInterupted()): #STEP 4 - move to position a bit above the part           
+
+                rospy.loginfo("\n\n[ExecutePart]: STEP 4 \n")
+                # 3 - go down until get the part
+                success = arm_actions.go_down_until_get_piece(part_world_position, 
+                                                    part_world_orientation, 
+                                                    part_type)
+                if not success:
+                    rospy.loginfo("[ExecutePart]: step4 failed. Reseting")
+                    self.part_plan.part.reset()
+                    return False
+
+                exec_step =+1 #STEP 4 - DONE
+
+###################       STEP 5       ##########################################
+
+            if(exec_step <= 5 and not self.exec_part.isInterupted()): #STEP 5 - Move back to initial position with the piece                  
+
+                rospy.loginfo("\n\n[ExecutePart]: STEP 5 \n")
+                success = self.exec_part.move_wait_front_part(part_world_position=part_world_position, 
+                                force_check_piece=True, force_grp_sts=True)
+                if not success:
+                    rospy.loginfo("[ExecutePart]: step failed. Reseting")
+                    self.part_plan.part.reset()
+                    return False
+
+                exec_step =+1 #STEP  - DONE
+
+###################       STEP 6       ##########################################                
+
+            if(exec_step <= 6 and not self.exec_part.isInterupted()): #STEP 6 - Temporary Debug
+                
+                rospy.loginfo("\n\n[ExecutePart]: STEP 6 \n")
+                gripper_actions.send_gripping_cmd(toGrip=False)
+                gripper_actions.wait_for_gripper(toGrip=False, max_wait=5, inc_sleep=0.01)
+                rospy.sleep(0.5)
+
+                done = True
+
+
 
 class ExecutePart:
 
     def __init__(self, partPlan):
         self.partPlan = partPlan
+        self.interrupt = False
+
+    def interupt_call_back():
+        self.interrupt = True
+        
+    def isInterupted(self):
+        return self.interrupt    
 
     def check_gripper(self, toGrp):
         return global_vars.gripper_state.attached == toGrp
@@ -75,87 +209,15 @@ class ExecutePart:
             return transform.transform_list_to_world(transforms_list)
 
     def execute_bin(self, part_origin):
-        part_type = self.partPlan.part.part_type
-        part_world_position = self.partPlan.pick_piece.world_position
-        part_world_orientation = self.partPlan.pick_piece.world_orientation 
 
-        if part_origin == PickPlaces.ANY_BIN.value:
-            rospy.loginfo("\n\n[ExecutePart]: STEP 0 \n")
-            # step 0 - get available pose for a part on any bin
-            camera_id, part_id = global_vars.tf_manager.find_part_name(part_type)
-            if(camera_id is None or part_id is None):
-                rospy.loginfo(
-                    "[ExecutePart]:Failed. No available part {} found".format(part_type))
-                self.partPlan.part.reset()
-                return False
-            r = self.find_part_any_bin(camera_id, part_id, part_type)
-            if(r is None):
-                rospy.loginfo(
-                    "[ExecutePart]:Failed. No available part {} found".format(part_type))
-                self.partPlan.part.reset()
-                return False
-            part_world_position, part_world_orientation = r
-                
-        rospy.loginfo("\n\n[ExecutePart]: STEP 1 \n")
-        # step 1 - move to position in front of the piece
-        success = self.move_wait_front_part(part_world_position)
-        if not success:
-            rospy.loginfo("[ExecutePart]: step1 failed. Reseting")
-            self.partPlan.part.reset()
-            return False
-
-        rospy.loginfo("\n\n[ExecutePart]: STEP 2 \n")
-        #step 2 - move to position a bit above the part
-        max_attempt = 3
-        attempt = 0
-        success = False
-        while(attempt < max_attempt and not success):            
-            success = self.move_wait_above_part(part_world_position, 
-                                                part_world_orientation, 
-                                                part_type)
-            if not success: 
-                attempt +=1           
-                rospy.loginfo("[ExecutePart]: step2 failed. attempt#" + str(attempt))
-
-        if not success:                 
-            rospy.loginfo("[ExecutePart]: step2 failed completly" + str(attempt))
-            global_vars.tf_manager.add_part_id_to_bl(part_id)
-            self.partPlan.part.reset()
-            return False
-
-        rospy.loginfo("\n\n[ExecutePart]: STEP 3 \n")
-        # 3 - go down until get the part
-        success = arm_actions.go_down_until_get_piece(part_world_position, 
-                                            part_world_orientation, 
-                                            part_type)
-        if not success:
-            rospy.loginfo("[ExecutePart]: step3 failed. Reseting")
-            self.partPlan.part.reset()
-            return False
-
-        rospy.loginfo("\n\n[ExecutePart]: STEP 4 \n")
-        # 4 - Move back to initial position with the piece
-        success = self.move_wait_front_part(part_world_position=part_world_position, 
-                        force_check_piece=True, force_grp_sts=True)
-        if not success:
-            rospy.loginfo("[ExecutePart]: step4 failed. Reseting")
-            self.partPlan.part.reset()
-            return False
-
-        # 5 - DEBUG - Drop
-        rospy.loginfo("\n\n[ExecutePart]: STEP 5 \n")
-        gripper_actions.send_gripping_cmd(toGrip=False)
-        gripper_actions.wait_for_gripper(toGrip=False, max_wait=5, inc_sleep=0.01)
-        rospy.sleep(0.5)
+        exec_bin = ExecBin(part_plan=self.partPlan, exec_part=self)
+        exec_bin.execute()
 
 
 
     def execute(self):
         # check where the part is, bin or belt
         part_origin = self.partPlan.pick_piece.origin.value
-        part_type = self.partPlan.part.part_type
-        part_world_position = self.partPlan.pick_piece.world_position
-        part_world_orientation = self.partPlan.pick_piece.world_orientation 
 
         # if part is on the bin:
         if "bin" in part_origin:
