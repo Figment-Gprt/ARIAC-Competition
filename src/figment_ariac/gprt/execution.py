@@ -127,55 +127,11 @@ class ExecBin:
 
                 exec_step =+1 #STEP  - DONE
 
-###################       STEP 6       ##########################################                
-            if(exec_step <= 6 and not self.exec_part.isInterupted()): #STEP 6 - Move To TRAY
+###################       STEP 6       ##########################################
+
+            if(exec_step <= 6 and not self.exec_part.isInterupted()): #STEP 5 - Verify if piece is pulley part                  
+
                 rospy.loginfo("\n\n[ExecutePart]: STEP 6 \n")
-                success = self.exec_part.move_to_tray(tray_id)
-                # success = self.exec_part.move_wait_front_part(part_world_position)
-                if not success:
-                    rospy.loginfo("[ExecutePart]: step6 failed. Reseting")
-                    self.part_plan.part.reset()
-                    return False
-
-            if(exec_step <= 6 and not self.exec_part.isInterupted()): #STEP 6 - Temporary Debug
-                exec_step =+1 #STEP  - DONE
-
-###################       STEP 7       ##########################################                
-            if(exec_step <= 7 and not self.exec_part.isInterupted()): #STEP 7 - Put Part at tray
-                rospy.loginfo("\n\n[ExecutePart]: STEP 7 \n")
-                
-                rospy.loginfo("\n\n[ExecutePart]: STEP 6 \n")
-                gripper_actions.send_gripping_cmd(toGrip=False)
-                gripper_actions.wait_for_gripper(toGrip=False, max_wait=5, inc_sleep=0.01)
-                rospy.sleep(0.5)
-                success = self.exec_part.deposit_at_tray(desired_part_pose=desired_part_pose, part_type=part_type, tray_id=tray_id, force_check_piece=True)
-
-                if not success:
-                    rospy.loginfo("[ExecutePart]: step7 failed. Reseting")
-                    self.part_plan.part.reset()
-                    return False
-
-                exec_step =+1 #STEP  - DONE
-
-
-###################       STEP 8       ##########################################                
-            if(exec_step <= 8 and not self.exec_part.isInterupted()): #STEP 8 - Move To TRAY
-                rospy.loginfo("\n\n[ExecutePart]: STEP 8 \n")
-                
-                success = self.exec_part.move_to_tray(tray_id, force_check_piece=False)
-                # success = self.exec_part.move_wait_front_part(part_world_position)
-                if not success:
-                    rospy.loginfo("[ExecutePart]: step8 failed. Reseting")
-                    self.part_plan.part.reset()
-                    return False
-
-                exec_step =+1 #STEP  - DONE
-
-###################       STEP 9       ##########################################
-
-            if(exec_step <= 9 and not self.exec_part.isInterupted()): #STEP 5 - Verify if piece is pulley part                  
-
-                rospy.loginfo("\n\n[ExecutePart]: STEP 9 \n")
                 
                 if(part_type == "gear_part"):
                 	rospy.sleep(1)
@@ -191,6 +147,50 @@ class ExecBin:
 
                 exec_step =+1 #STEP  - DONE
                 rospy.sleep(3)
+
+###################       STEP 7       ##########################################                
+            if(exec_step <= 7 and not self.exec_part.isInterupted()): #STEP 6 - Move To TRAY
+                rospy.loginfo("\n\n[ExecutePart]: STEP 7 \n")
+                success = self.exec_part.move_to_tray(tray_id)
+                # success = self.exec_part.move_wait_front_part(part_world_position)
+                if not success:
+                    rospy.loginfo("[ExecutePart]: step6 failed. Reseting")
+                    self.part_plan.part.reset()
+                    return False
+
+            if(exec_step <= 6 and not self.exec_part.isInterupted()): #STEP 6 - Temporary Debug
+                exec_step =+1 #STEP  - DONE
+
+###################       STEP 8       ##########################################                
+            if(exec_step <= 8 and not self.exec_part.isInterupted()): #STEP 7 - Put Part at tray
+                rospy.loginfo("\n\n[ExecutePart]: STEP 8 \n")
+                
+                gripper_actions.send_gripping_cmd(toGrip=False)
+                gripper_actions.wait_for_gripper(toGrip=False, max_wait=5, inc_sleep=0.01)
+                rospy.sleep(0.5)
+                success = self.exec_part.deposit_at_tray(desired_part_pose=desired_part_pose, part_type=part_type, tray_id=tray_id, force_check_piece=True)
+
+                if not success:
+                    rospy.loginfo("[ExecutePart]: step7 failed. Reseting")
+                    self.part_plan.part.reset()
+                    return False
+
+                exec_step =+1 #STEP  - DONE
+
+
+###################       STEP 9       ##########################################                
+            if(exec_step <= 9 and not self.exec_part.isInterupted()): #STEP 8 - Move To TRAY
+                rospy.loginfo("\n\n[ExecutePart]: STEP 9 \n")
+                
+                success = self.exec_part.move_to_tray(tray_id, force_check_piece=False)
+                # success = self.exec_part.move_wait_front_part(part_world_position)
+                if not success:
+                    rospy.loginfo("[ExecutePart]: step8 failed. Reseting")
+                    self.part_plan.part.reset()
+                    return False
+
+                exec_step =+1 #STEP  - DONE
+
 
 
                 done = True
