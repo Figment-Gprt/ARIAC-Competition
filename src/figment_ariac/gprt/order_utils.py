@@ -166,7 +166,8 @@ class Kit:
     def reset(self):
     	for part in self.parts:
     		part.reset()
-    	self.state = KIT_STATES.INIT
+    	self.state = Status.INIT
+        self.plan = None #TODO check later
 
 
 class Part:
@@ -203,6 +204,7 @@ class Part:
 
     def reset(self):
     	self.state = Status.INIT
+        self.plan = None #TODO check later
 
     def set_done(self):
         self.state = Status.DONE

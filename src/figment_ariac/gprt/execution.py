@@ -117,7 +117,13 @@ class ExecBin:
 
             if(exec_step <= 99 and not self.exec_part.isInterupted()): #STEP 5 - Move back to initial position with the piece                  
 
-                
+                rospy.loginfo("\n\n[ExecutePart]: STEP 5 \n")
+                success = self.exec_part.move_wait_front_part(part_world_position=part_world_position, 
+                                force_check_piece=False, force_grp_sts=True)
+                if not success:
+                    rospy.loginfo("[ExecutePart]: step failed. Reseting")
+                    self.part_plan.part.reset()
+                    return False
 
                 exec_step =+1 #STEP  - DONE
 
@@ -160,6 +166,7 @@ class ExecBin:
                 	arm_actions.MoveSideWays(0.4)
                 	rospy.loginfo("\n\nSTEP 6 - PASSO 5 \n")
                 	rospy.sleep(1)
+                	
 
                 	gripper_actions.wait_for_gripper(toGrip=False, max_wait=5, inc_sleep=0.01)
                 	rospy.loginfo("\n\nSTEP 6 - PASSO 6 \n")
@@ -217,7 +224,10 @@ class ExecBin:
 ###################       STEP 8       ##########################################                
             if(exec_step <= 8 and not self.exec_part.isInterupted()): #STEP 7 - Put Part at tray
                 rospy.loginfo("\n\n[ExecutePart]: STEP 8 \n")
-                
+                #DEBUG LACK OF PARTS
+                # gripper_actions.send_gripping_cmd(toGrip=False)
+                # gripper_actions.wait_for_gripper(toGrip=False, max_wait=5, inc_sleep=0.01)
+                # rospy.sleep(0.5)
                 success = self.exec_part.deposit_at_tray(desired_part_pose=desired_part_pose, part_type=part_type, tray_id=tray_id, force_check_piece=True)
 
                 if not success:
