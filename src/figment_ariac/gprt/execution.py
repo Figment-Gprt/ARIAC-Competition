@@ -394,3 +394,12 @@ def send_agv(kit, tray_id):
                   " to : " + agvServiceName)
     rospy.wait_for_service(agvServiceName)
     try:
+    	send_agv = rospy.ServiceProxy(
+    		agvServiceName, AGVControl)
+        success = send_agv(kit.kit_type)
+        rospy.sleep(1)
+        return success
+    except rospy.ServiceException as exc:
+        rospy.logerr("Failed to notify agv %s: %s" % (self.kit_type, exc))
+        return False
+
