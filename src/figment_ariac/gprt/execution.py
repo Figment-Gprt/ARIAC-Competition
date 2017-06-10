@@ -3,12 +3,13 @@ import arm_actions
 import global_vars
 import rospy
 import transform
-import utils
 
-from utils import PickPlaces
+from utils import *
 from constants import *
 from trajectory_msgs.msg import JointTrajectory
 import gripper_actions
+
+from osrf_gear.srv import AGVControl
 
 class ExecBin:
 
@@ -30,8 +31,9 @@ class ExecBin:
                 part_origin = self.part_plan.pick_piece.origin.value
                 part_type = self.part_plan.part.part_type
                 part_world_position = self.part_plan.pick_piece.world_position
-                part_world_orientation = self.part_plan.pick_piece.world_orientation 
-
+                part_world_orientation = self.part_plan.pick_piece.world_orientation
+                tray_id = self.part_plan.dest_tray_id 
+                desired_part_pose = self.part_plan.part.desired_pose
                 exec_step =+1 #STEP 0 - DONE
 
 ###################       STEP 1       ##########################################
@@ -117,7 +119,7 @@ class ExecBin:
 
                 rospy.loginfo("\n\n[ExecutePart]: STEP 5 \n")
                 success = self.exec_part.move_wait_front_part(part_world_position=part_world_position, 
-                                force_check_piece=True, force_grp_sts=True)
+                                force_check_piece=False, force_grp_sts=True)
                 if not success:
                     rospy.loginfo("[ExecutePart]: step failed. Reseting")
                     self.part_plan.part.reset()
@@ -125,12 +127,55 @@ class ExecBin:
 
                 exec_step =+1 #STEP  - DONE
 
-
-###################       STEP 6       ##########################################
-
-            if(exec_step <= 6 and not self.exec_part.isInterupted()): #STEP 5 - Verify if piece is pulley part                  
-
+###################       STEP 6       ##########################################                
+            if(exec_step <= 6 and not self.exec_part.isInterupted()): #STEP 6 - Move To TRAY
                 rospy.loginfo("\n\n[ExecutePart]: STEP 6 \n")
+                success = self.exec_part.move_to_tray(tray_id)
+                # success = self.exec_part.move_wait_front_part(part_world_position)
+                if not success:
+                    rospy.loginfo("[ExecutePart]: step6 failed. Reseting")
+                    self.part_plan.part.reset()
+                    return False
+
+            if(exec_step <= 6 and not self.exec_part.isInterupted()): #STEP 6 - Temporary Debug
+                exec_step =+1 #STEP  - DONE
+
+###################       STEP 7       ##########################################                
+            if(exec_step <= 7 and not self.exec_part.isInterupted()): #STEP 7 - Put Part at tray
+                rospy.loginfo("\n\n[ExecutePart]: STEP 7 \n")
+                
+                rospy.loginfo("\n\n[ExecutePart]: STEP 6 \n")
+                gripper_actions.send_gripping_cmd(toGrip=False)
+                gripper_actions.wait_for_gripper(toGrip=False, max_wait=5, inc_sleep=0.01)
+                rospy.sleep(0.5)
+                success = self.exec_part.deposit_at_tray(desired_part_pose=desired_part_pose, part_type=part_type, tray_id=tray_id, force_check_piece=True)
+
+                if not success:
+                    rospy.loginfo("[ExecutePart]: step7 failed. Reseting")
+                    self.part_plan.part.reset()
+                    return False
+
+                exec_step =+1 #STEP  - DONE
+
+
+###################       STEP 8       ##########################################                
+            if(exec_step <= 8 and not self.exec_part.isInterupted()): #STEP 8 - Move To TRAY
+                rospy.loginfo("\n\n[ExecutePart]: STEP 8 \n")
+                
+                success = self.exec_part.move_to_tray(tray_id, force_check_piece=False)
+                # success = self.exec_part.move_wait_front_part(part_world_position)
+                if not success:
+                    rospy.loginfo("[ExecutePart]: step8 failed. Reseting")
+                    self.part_plan.part.reset()
+                    return False
+
+                exec_step =+1 #STEP  - DONE
+
+###################       STEP 9       ##########################################
+
+            if(exec_step <= 9 and not self.exec_part.isInterupted()): #STEP 5 - Verify if piece is pulley part                  
+
+                rospy.loginfo("\n\n[ExecutePart]: STEP 9 \n")
                 
                 if(part_type == "gear_part"):
                 	rospy.sleep(1)
@@ -148,16 +193,19 @@ class ExecBin:
                 rospy.sleep(3)
 
 
-###################       STEP 7       ##########################################                
-
-            if(exec_step <= 7 and not self.exec_part.isInterupted()): #STEP 6 - Temporary Debug
-                
-                rospy.loginfo("\n\n[ExecutePart]: STEP 7 \n")
-                gripper_actions.send_gripping_cmd(toGrip=False)
-                gripper_actions.wait_for_gripper(toGrip=False, max_wait=5, inc_sleep=0.01)
-                rospy.sleep(0.5)
-
                 done = True
+
+###################       STEP 11       ##########################################                            
+            # if(exec_step <= 11 and not self.exec_part.isInterupted()): #STEP 11 - Temporary Debug
+                
+            #     rospy.loginfo("\n\n[ExecutePart]: STEP 11 \n")
+            #     gripper_actions.send_gripping_cmd(toGrip=False)
+            #     gripper_actions.wait_for_gripper(toGrip=False, max_wait=5, inc_sleep=0.01)
+            #     rospy.sleep(0.5)
+
+            #     done = True
+
+        return done
 
 
 
@@ -166,7 +214,7 @@ class ExecutePart:
     def __init__(self, partPlan):
         self.partPlan = partPlan
         self.interrupt = False
-        
+
     def interupt_call_back():
         self.interrupt = True
         
@@ -188,7 +236,6 @@ class ExecutePart:
 
         angles = arm_actions.go_to_part_bin_front(part_world_position)
 
-
         # checking joint states
         success = arm_actions.check_arm_joint_values_published(list_of_joint_values=angles, 
                                             force_check_piece=False, force_grp_sts=True)
@@ -206,14 +253,14 @@ class ExecutePart:
             else:
                 return True
 
-    def move_wait_above_part(self, part_world_position, part_world_orientation, part_type):
+    def move_wait_above_part(self, part_world_position, part_world_orientation, part_type, solver_type=arm_actions.SolverType.BIN):
         rospy.loginfo("[ExecutePart]: move_wait_above_part: "+ str(part_world_position))
         list_joint_values = arm_actions.go_to_position_a_bit_above_part(
             world_position=part_world_position,
             world_orientation=part_world_orientation,
             part_type=part_type, 
             time_to_execute_action=3, 
-            solver_type=arm_actions.SolverType.BIN)
+            solver_type=solver_type)
 
         success = arm_actions.check_arm_joint_values_published(
             list_of_joint_values=list_joint_values)       
@@ -234,20 +281,100 @@ class ExecutePart:
             transforms_list = global_vars.tf_manager.get_transform_list(part_id, 'world')
             return transform.transform_list_to_world(transforms_list)
 
+    def move_to_tray(self, tray_id, force_check_piece=True, force_grp_sts=True ):
+        tray_name = "agv" + str(tray_id)
+        rospy.loginfo("[ExecutePart]: move_to_tray: "+ tray_name)
+
+        if(force_check_piece):
+            grpOK = self.check_gripper(force_grp_sts)
+            if (not grpOK):
+                rospy.logerr("[ExecutePart]:move_wait_front_part - Gripper failed!")
+                return False
+
+        angles = arm_actions.go_to_tray_position(tray_name)
+        success = arm_actions.check_arm_joint_values_published(list_of_joint_values=angles, 
+                                            force_check_piece=False, force_grp_sts=True)
+
+
+        if not success:
+            rospy.logerr("[ExecutePart]: move_to_tray failed")
+            return False
+        else:
+            if(force_check_piece):
+                grpOK = self.check_gripper(force_grp_sts)
+                if (not grpOK):
+                    rospy.logerr("[ExecutePart]:move_to_tray - Gripper failed!")
+                    return False
+                else:
+                    return True
+            else:
+                return True
+
+    def deposit_at_tray(self, desired_part_pose, part_type, tray_id, force_check_piece=False, force_grp_sts=True):
+        # calculate position of the part at tray
+        solver_type = arm_actions.SolverType.AGV1 if tray_id == 1 else arm_actions.SolverType.AGV2
+        part_position_at_tray, part_orientation_at_tray  = calculate_order_position(desired_part_pose, tray_id)
+
+
+        if(force_check_piece):
+            grpOK = self.check_gripper(force_grp_sts)
+            if (not grpOK):
+                rospy.logerr("[ExecutePart]:deposit_at_tray - Gripper failed!")
+                return False
+
+        # move a bit above the position
+        max_attempt = 3
+        attempt = 0
+        success = False
+        while(attempt < max_attempt and not success):            
+            success = self.move_wait_above_part(part_position_at_tray, 
+                                                part_orientation_at_tray, 
+                                                part_type,
+                                                solver_type=solver_type)
+            if not success: 
+                attempt +=1           
+                rospy.loginfo("[ExecutePart]: step7 failed. attempt#" + str(attempt))
+
+        if not success:
+            rospy.logerr("[ExecutePart]: deposit_at_tray failed")
+            return False
+        else:
+            if(force_check_piece):
+                grpOK = self.check_gripper(force_grp_sts)
+                if (not grpOK):
+                    rospy.logerr("[ExecutePart]:deposit_at_tray - Gripper failed to complete the movement holding part!")
+                    return False
+                else:
+                    success = gripper_actions.send_gripping_cmd(toGrip=False)
+
+                    if success:
+                        return True
+                    else:
+                        rospy.logerr("[ExecutePart]:deposit_at_tray - Gripper failed to drop part!")
+                        return False
+            else:
+                return True
+
+
     def execute_bin(self, part_origin):
 
         exec_bin = ExecBin(part_plan=self.partPlan, exec_part=self)
-        exec_bin.execute()
+        success = exec_bin.execute()
+
+        return success
+
+
+
 
 
 
     def execute(self):
         # check where the part is, bin or belt
         part_origin = self.partPlan.pick_piece.origin.value
-
+        success = False
         # if part is on the bin:
         if "bin" in part_origin:
-            self.execute_bin(part_origin)
+            success = self.execute_bin(part_origin)
 
         # if part is on the belt
         elif "belt" in part_origin:
@@ -257,6 +384,13 @@ class ExecutePart:
         elif "tray" in part_origin:
             pass
 
+        return success
 
 
-        pass
+
+def send_agv(kit, tray_id):
+    agvServiceName = "/ariac/agv{0}".format(tray_id)
+    rospy.loginfo("sending 'kit_type: " + kit.kit_type +
+                  " to : " + agvServiceName)
+    rospy.wait_for_service(agvServiceName)
+    try:

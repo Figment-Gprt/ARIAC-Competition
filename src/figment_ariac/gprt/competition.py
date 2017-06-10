@@ -57,6 +57,8 @@ class Competition:
         if self.current_comp_state != msg.data:
             rospy.loginfo("[Competition] State CallBack - comp state: " + str(msg.data))
         self.current_comp_state = msg.data
+        if msg.data == "done":
+            self.scheduler.setFinished(True)
 
     def order_callback(self, ariac_order_msg):
     	order = order_utils.Order(ariac_order_msg)    	

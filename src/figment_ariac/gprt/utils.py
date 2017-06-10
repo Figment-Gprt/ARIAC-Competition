@@ -199,8 +199,8 @@ def comparePosition(p1, p2, accError):
 
     return eq, ret
 
-def calculate_order_position(order_pose, agv, incrementX=0, incrementY=0, incrementZ=0):
-    tray_frame = TRAY_FRAME[agv]
+def calculate_order_position(order_pose, agv_id, incrementX=0, incrementY=0, incrementZ=0):
+    tray_frame = TRAY_FRAME[agv_id]
     transform_part = Transform([order_pose.position.x, order_pose.position.y, order_pose.position.z], [
                                order_pose.orientation.x, order_pose.orientation.y, order_pose.orientation.z, order_pose.orientation.w])
     transform_agv = global_vars.tf_manager.get_transform('world', tray_frame)
@@ -209,10 +209,12 @@ def calculate_order_position(order_pose, agv, incrementX=0, incrementY=0, increm
         transform_part, transform_agv)
 
     # moving to the middle of the tray
-    final_position[0] += TRAY_POSITIONS2[agv][0] + incrementX
-    final_position[1] += TRAY_POSITIONS2[agv][1] + incrementY
-    final_position[2] += TRAY_POSITIONS2[agv][2] + incrementZ
+    final_position[0] += TRAY_POSITIONS2[agv_id][0] + incrementX
+    final_position[1] += TRAY_POSITIONS2[agv_id][1] + incrementY
+    final_position[2] += TRAY_POSITIONS2[agv_id][2] + incrementZ
     final_rotation = [order_pose.orientation.x, order_pose.orientation.y, order_pose.orientation.z, order_pose.orientation.w]
 
     return final_position, final_rotation
+
+
 

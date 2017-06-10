@@ -84,7 +84,7 @@ class Scheduler:
     def isFinished(self):
         return self.finished
 
-    def setFinished(status):
+    def setFinished(self, status):
         self.finished = status
 
     def execute(self):
@@ -97,6 +97,19 @@ class Scheduler:
             else:
                 execute_part = execution.ExecutePart(part_plan)
                 status = execute_part.execute()
+                # part deposited successfully at tray
+                if status:
+                    part_plan.part.set_done()
+                    rospy.loginfo("[Scheduler] Part from kit deposited successfully")
+                    
+                    if part_plan.part.parent_kit.get_status() == order_utils.Status.DONE:
+                        rospy.loginfo("[Scheduler] Kit completed successfully")
+                        rospy.loginfo("[Scheduler] Sending AGV")
+                        execution.send_agv(part_plan.part.parent_kit, part_plan.dest_tray_id)
+
+
+
+
 
     #Get non finished high priority order
     def get_non_fin_hp_order(self):
@@ -189,8 +202,6 @@ class Scheduler:
             #Not sure yet what to do for other states (HALTED, ERROR)
             if(kit.get_status() is not order_utils.Status.DONE):
                 return kit
-
-
 
 
 

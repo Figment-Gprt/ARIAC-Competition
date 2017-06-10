@@ -39,6 +39,15 @@ def go_to_initial_position():
     set_arm_joint_values(list_of_joint_values=STATIC_POSITIONS[
                          "initial_position"], time_to_execute_action=0.5)
 
+def go_to_tray_position(tray_id):
+    """
+    Move the arm to static position in front of the tray
+    tray_id - key for the wanted tray to be used in the STATIC_POSITIONS MAP.
+    """
+
+    set_arm_joint_values(STATIC_POSITIONS[tray_id], 2)
+
+    return STATIC_POSITIONS[tray_id]
 
 def go_to_part_bin_front(part_world_position):
     """
@@ -50,13 +59,6 @@ def go_to_part_bin_front(part_world_position):
     #linear_arm_actuator_joint = part.y
 
     rest_position[1] = part_world_position[1] + WRIST_LENGTH
-    
-    # colision with camera, need to get far a little bit
-    if part_world_position[1] + 0.2 >= LOGICAL_CAMERA_BIN_7_8_Y:
-        rest_position[1] -= 0.2
-
-    elif part_world_position[1] - 0.2 >= LOGICAL_CAMERA_BIN_5_6_Y:
-        rest_position[1] += 0.2
 
     set_arm_joint_values(rest_position, 1)
     return rest_position
