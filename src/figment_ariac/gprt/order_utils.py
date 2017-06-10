@@ -79,7 +79,7 @@ class Order:
 
     
     def deep_check_done(self):
-        for kit in kits:
+        for kit in self.kits:
             if kit.get_status() is not Status.DONE:
                 return False
         return True
@@ -153,7 +153,7 @@ class Kit:
         self.parent_order.process_kit_done(self)
 
     def deep_check_done(self):
-        for part in parts:
+        for part in self.parts:
             if part.get_status() is not Status.DONE:
                 return False
         return True
