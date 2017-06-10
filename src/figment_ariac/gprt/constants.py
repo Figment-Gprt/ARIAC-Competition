@@ -15,10 +15,10 @@ STATIC_POSITIONS = {
 }
 
 BIN_CAMERA = {
-    "bin5"	: "logical_camera_2",
-    "bin6"	: "logical_camera_2",
-    "bin7"	: "logical_camera_1",
-    "bin8"	: "logical_camera_1",
+    "bin5"	: "logical_camera_bin_5_6",
+    "bin6"	: "logical_camera_bin_5_6",
+    "bin7"	: "logical_camera_bin_7_8",
+    "bin8"	: "logical_camera_bin_7_8",
     "belt"	: "logical_camera_5"
 }
 
@@ -77,6 +77,9 @@ UP_ARM = 0.6127
 FORE_ARM = 0.5716
 
 WRIST_LENGTH = 0.1639
+
+LOGICAL_CAMERA_BIN_7_8_Y = 0.610722
+LOGICAL_CAMERA_BIN_5_6_Y = -0.914553
 
 OBJECT_HEIGHT = {
     "PISTON_ROD_PART": 0.005,

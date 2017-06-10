@@ -39,7 +39,7 @@ class ExecBin:
                 if part_origin == PickPlaces.ANY_BIN.value:
                     rospy.loginfo("\n\n[ExecutePart]: STEP 1 \n")
                     # step 0 - get available pose for a part on any bin
-                    camera_id, part_id = global_vars.tf_manager.find_part_name(part_type)
+                    camera_id, part_id = global_vars.tf_manager.find_part_name("piston_rod_part_4")
                     if(camera_id is None or part_id is None):
                         rospy.loginfo(
                             "[ExecutePart]:Failed. No available part {} found".format(part_type))

@@ -41,11 +41,19 @@ def go_to_part_bin_front(part_world_position):
     """
     Move to the front of the wanted part.
     part_world_position : world coordinates of the part position.
+
     """
     rest_position = STATIC_POSITIONS["rest_position"]
     #linear_arm_actuator_joint = part.y
+
     rest_position[1] = part_world_position[1] + WRIST_LENGTH
     
+    # colision with camera, need to get far a little bit
+    if part_world_position[1] + 0.2 >= LOGICAL_CAMERA_BIN_7_8_Y:
+        rest_position[1] -= 0.2
+
+    elif part_world_position[1] - 0.2 >= LOGICAL_CAMERA_BIN_5_6_Y:
+        rest_position[1] += 0.2
 
     set_arm_joint_values(rest_position, 1)
     return rest_position
