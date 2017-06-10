@@ -8,9 +8,12 @@
 import rospy
 import utils
 import global_vars
+import math
 
 from constants import *
 from trajectory_msgs.msg import JointTrajectory
+from trianglesolver import solve, degree
+from copy import deepcopy
 
 from ik_solution import solverBin, solverBelt, depositOnTray2, depositOnTray1
 import gripper_actions
@@ -199,3 +202,74 @@ def check_arm_joint_values_published(list_of_joint_values=None, static_position_
         else:    
             rospy.loginfo("[check_arm_joint_values_published] - Goal Reached")
             return True
+
+
+def turnAndMoveSideWays(turn_wrist, move_side):
+        
+        position = global_vars.current_joint_state.position
+        angles = []
+        angles.extend(position)
+        angles[1] = angles[1] + move_side 
+        rospy.loginfo("[check_arm_joint_values_published] - Goal Reached" + str(angles[5]))
+        angles[5] = angles[5] + turn_wrist
+        rospy.loginfo("[check_arm_joint_values_published] - Goal Reached" + str(angles[5]))
+        
+
+        # msg = utils.createJointTrajectory(angles, time=1)
+        # joint_trajectory_publisher.publish(msg)
+        set_arm_joint_values(angles, 0.1)
+
+        check_arm_joint_values_published(
+            list_of_joint_values=angles)
+        
+
+def moveToolTip(incrementZ=0.3, incrementX=0.1, timeToGoal=0.2):
+        
+        posUpperArm, angleUpperArm = utils.getUpperArmPose()
+        posVacum, angleVacum = utils.getVacuumGripperPos()
+        posFore, angleFore = utils.getForeArmPos()
+
+        workingPos = deepcopy(posVacum)
+        workingPos[2] += incrementZ
+        workingPos[0] += incrementX
+
+
+        shoulderBTriangle = utils.computeXZDistance(posUpperArm, workingPos)
+
+        xDistance = abs(utils.computeXDistance(posUpperArm, workingPos))
+        zDistance = abs(utils.computeZDistance(posUpperArm, workingPos))
+
+
+        wristBTriangle = utils.computeXZDistance(workingPos, posVacum)
+
+        workingIsAbove = utils.computeZDistance(posUpperArm, workingPos) < 0
+
+        a1, b1, c1, A1, B1, C1 = solve(
+            a=shoulderBTriangle, b=FORE_ARM, c=UP_ARM)
+
+        a2, b2, c2, A2, B2, C2 = solve(
+            a=xDistance, b=zDistance, c=shoulderBTriangle)
+
+        elbow_joint = math.pi - A1
+
+        shoulder_lift_joint = math.pi / 2 - A2 -B1
+        wrist_1_joint =  math.pi - (C1 + B2) + math.pi/2
+     
+        angles = []
+        angles.extend(global_vars.current_joint_state.position)
+        angles[0] = elbow_joint
+        angles[2] = shoulder_lift_joint
+        angles[4] = wrist_1_joint
+
+        rospy.sleep(1)
+
+        # msg = utils.createJointTrajectory(angles, time=1)
+        # joint_trajectory_publisher.publish(msg)
+        set_arm_joint_values(angles, 0.1)
+
+        check_arm_joint_values_published(
+            list_of_joint_values=angles)
+
+
+            
+        

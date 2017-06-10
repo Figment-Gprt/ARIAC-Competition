@@ -6,6 +6,7 @@ import transform
 
 from utils import *
 from constants import *
+from trajectory_msgs.msg import JointTrajectory
 import gripper_actions
 
 from osrf_gear.srv import AGVControl
@@ -126,9 +127,30 @@ class ExecBin:
 
                 exec_step =+1 #STEP  - DONE
 
-###################       STEP 6       ##########################################                
-            if(exec_step <= 6 and not self.exec_part.isInterupted()): #STEP 6 - Move To TRAY
+###################       STEP 6       ##########################################
+
+            if(exec_step <= 6 and not self.exec_part.isInterupted()): #STEP 5 - Verify if piece is pulley part                  
+
                 rospy.loginfo("\n\n[ExecutePart]: STEP 6 \n")
+                
+                if(part_type == "gear_part"):
+                	rospy.sleep(1)
+                	arm_actions.moveToolTip(0.2, 0.1, 1.4)
+
+                	arm_actions.turnAndMoveSideWays(0.01, 0.022)
+                	
+                		
+                if not success:
+                    rospy.loginfo("[ExecutePart]: step failed. Reseting")
+                    self.part_plan.part.reset()
+                    return False
+
+                exec_step =+1 #STEP  - DONE
+                rospy.sleep(3)
+
+###################       STEP 7       ##########################################                
+            if(exec_step <= 7 and not self.exec_part.isInterupted()): #STEP 6 - Move To TRAY
+                rospy.loginfo("\n\n[ExecutePart]: STEP 7 \n")
                 success = self.exec_part.move_to_tray(tray_id)
                 # success = self.exec_part.move_wait_front_part(part_world_position)
                 if not success:
@@ -136,12 +158,16 @@ class ExecBin:
                     self.part_plan.part.reset()
                     return False
 
+            if(exec_step <= 6 and not self.exec_part.isInterupted()): #STEP 6 - Temporary Debug
                 exec_step =+1 #STEP  - DONE
 
-###################       STEP 7       ##########################################                
-            if(exec_step <= 7 and not self.exec_part.isInterupted()): #STEP 7 - Put Part at tray
-                rospy.loginfo("\n\n[ExecutePart]: STEP 7 \n")
+###################       STEP 8       ##########################################                
+            if(exec_step <= 8 and not self.exec_part.isInterupted()): #STEP 7 - Put Part at tray
+                rospy.loginfo("\n\n[ExecutePart]: STEP 8 \n")
                 
+                gripper_actions.send_gripping_cmd(toGrip=False)
+                gripper_actions.wait_for_gripper(toGrip=False, max_wait=5, inc_sleep=0.01)
+                rospy.sleep(0.5)
                 success = self.exec_part.deposit_at_tray(desired_part_pose=desired_part_pose, part_type=part_type, tray_id=tray_id, force_check_piece=True)
 
                 if not success:
@@ -152,9 +178,9 @@ class ExecBin:
                 exec_step =+1 #STEP  - DONE
 
 
-###################       STEP 8       ##########################################                
-            if(exec_step <= 8 and not self.exec_part.isInterupted()): #STEP 8 - Move To TRAY
-                rospy.loginfo("\n\n[ExecutePart]: STEP 8 \n")
+###################       STEP 9       ##########################################                
+            if(exec_step <= 9 and not self.exec_part.isInterupted()): #STEP 8 - Move To TRAY
+                rospy.loginfo("\n\n[ExecutePart]: STEP 9 \n")
                 
                 success = self.exec_part.move_to_tray(tray_id, force_check_piece=False)
                 # success = self.exec_part.move_wait_front_part(part_world_position)
@@ -165,8 +191,9 @@ class ExecBin:
 
                 exec_step =+1 #STEP  - DONE
 
-                done = True
 
+
+                done = True
 
 ###################       STEP 11       ##########################################                            
             # if(exec_step <= 11 and not self.exec_part.isInterupted()): #STEP 11 - Temporary Debug
@@ -179,6 +206,7 @@ class ExecBin:
             #     done = True
 
         return done
+
 
 
 class ExecutePart:
@@ -366,12 +394,12 @@ def send_agv(kit, tray_id):
                   " to : " + agvServiceName)
     rospy.wait_for_service(agvServiceName)
     try:
-
-        send_agv = rospy.ServiceProxy(
-            agvServiceName, AGVControl)
+    	send_agv = rospy.ServiceProxy(
+    		agvServiceName, AGVControl)
         success = send_agv(kit.kit_type)
         rospy.sleep(1)
         return success
     except rospy.ServiceException as exc:
         rospy.logerr("Failed to notify agv %s: %s" % (self.kit_type, exc))
         return False
+
