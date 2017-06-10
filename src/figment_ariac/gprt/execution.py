@@ -164,10 +164,10 @@ class ExecBin:
 ###################       STEP 8       ##########################################                
             if(exec_step <= 8 and not self.exec_part.isInterupted()): #STEP 7 - Put Part at tray
                 rospy.loginfo("\n\n[ExecutePart]: STEP 8 \n")
-                
-                gripper_actions.send_gripping_cmd(toGrip=False)
-                gripper_actions.wait_for_gripper(toGrip=False, max_wait=5, inc_sleep=0.01)
-                rospy.sleep(0.5)
+                #DEBUG LACK OF PARTS
+                # gripper_actions.send_gripping_cmd(toGrip=False)
+                # gripper_actions.wait_for_gripper(toGrip=False, max_wait=5, inc_sleep=0.01)
+                # rospy.sleep(0.5)
                 success = self.exec_part.deposit_at_tray(desired_part_pose=desired_part_pose, part_type=part_type, tray_id=tray_id, force_check_piece=True)
 
                 if not success:
