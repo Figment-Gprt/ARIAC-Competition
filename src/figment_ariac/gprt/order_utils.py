@@ -80,7 +80,7 @@ class Order:
     
     def deep_check_done(self):
         for kit in kits:
-            if kit.get_status() is not ORDER_STATES.DONE:
+            if kit.get_status() is not Status.DONE:
                 return False
         return True
 
@@ -93,7 +93,7 @@ class Order:
     def reset(self):
     	for kit in self.kits:
     		kit.reset()
-    	self.state = ORDER_STATES.INIT
+    	self.state = Status.INIT
 
 
 
@@ -154,7 +154,7 @@ class Kit:
 
     def deep_check_done(self):
         for part in parts:
-            if part.get_status() is not ORDER_STATES.DONE:
+            if part.get_status() is not Status.DONE:
                 return False
         return True
 
@@ -202,7 +202,7 @@ class Part:
     	return self.state
 
     def reset(self):
-    	self.state = PART_STATES.INIT
+    	self.state = Status.INIT
 
     def set_done(self):
         self.state = Status.DONE

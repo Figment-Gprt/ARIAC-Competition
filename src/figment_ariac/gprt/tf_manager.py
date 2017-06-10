@@ -16,6 +16,7 @@ class TfManager:
         self.transforms_static = {}
         self.timeBuffer = timeBuffer
         self.graph = Graph()
+        self.part_id_black_list = []
 
 
     def __create_transform(self, translation, rotation):
@@ -23,19 +24,22 @@ class TfManager:
         quat = [rotation.x, rotation.y, rotation.z, rotation.w]
         return Transform(pos, quat)
 
+    def add_part_id_to_bl(self, part_id):
+        self.part_id_black_list.append(part_id)
+
     def find_part_name(self, part_name, dad=None):
         father = ""
         child = ""
         if dad is not None:
             for k_child in self.transforms_dynamic[dad].keys():
-                if part_name in k_child:
+                if part_name in k_child and k_child not in self.part_id_black_list:
                     child = k_child
                     father = dad
                     break
         if len(child) == 0:
             for k in self.transforms_dynamic.keys():
                 for k_child in self.transforms_dynamic[k].keys():
-                    if part_name in k_child:
+                    if part_name in k_child and k_child not in self.part_id_black_list:
                         child = k_child
                         break
 
@@ -46,7 +50,7 @@ class TfManager:
         if len(child) == 0:
             for k in self.transforms_static.keys():
                 for k_child in self.transforms_static[k].keys():
-                    if part_name in k_child:
+                    if part_name in k_child and k_child not in self.part_id_black_list:
                         child = k_child
                         break
 

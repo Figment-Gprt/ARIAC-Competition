@@ -13,6 +13,7 @@ from constants import *
 from trajectory_msgs.msg import JointTrajectory
 
 from ik_solution import solverBin, solverBelt, depositOnTray2, depositOnTray1
+import gripper_actions
 
 
 class SolverType:
@@ -36,6 +37,19 @@ def go_to_initial_position():
                          "initial_position"], time_to_execute_action=0.5)
 
 
+def go_to_part_bin_front(part_world_position):
+    """
+    Move to the front of the wanted part.
+    part_world_position : world coordinates of the part position.
+    """
+    rest_position = STATIC_POSITIONS["rest_position"]
+    #linear_arm_actuator_joint = part.y
+    rest_position[1] = part_world_position[1] + WRIST_LENGTH
+    
+
+    set_arm_joint_values(rest_position, 1)
+    return rest_position
+
 def go_to_bin_front(bin_id):
     """
     Move to the front of the wanted bin_id.
@@ -45,7 +59,7 @@ def go_to_bin_front(bin_id):
     set_arm_joint_values(STATIC_POSITIONS[bin_id], 1)
 
 
-def go_to_position_a_bit_above_part(world_position, world_orientation, part_type, time_to_execute_action, solver_type, a_bit_above_value=0.03, ignore_height=False):
+def go_to_position_a_bit_above_part(world_position, world_orientation, part_type, time_to_execute_action, solver_type, a_bit_above_value=0.015, ignore_height=False):
     """
         Move the arm to a position a little bit above the part.
 
@@ -82,6 +96,42 @@ def go_to_position_a_bit_above_part(world_position, world_orientation, part_type
 
 
 
+def go_down_until_get_piece(world_position, world_orientation, part_type, 
+    time=3, ignoreHeight=False, distance=0.01):
+    
+    rospy.loginfo("[Arm Actions] go_down_until_get_piece")
+    tfPos = world_position
+    tfOri = world_orientation
+    position = [tfPos[0], tfPos[1], tfPos[2] - distance]
+
+
+    rospy.loginfo(
+        "[go_down_until_get_piece] goDownUntilGetPiece pos = " + str(position))
+    angles = solverBin(position, tfOri, part_type,
+                       ignoreHeight=ignoreHeight)
+
+    position2 = [tfPos[0], tfPos[1], tfPos[2] + 0.02]
+    angles2 = solverBin(position2, tfOri, part_type,
+                        ignoreHeight=ignoreHeight)
+
+
+    set_arm_joint_values(angles, time)
+    success = gripper_actions.send_gripping_cmd(toGrip=True)
+    if not success:
+        rospy.logerr(
+        "[go_down_until_get_piece] send_gripping_cmd Failure")
+        return False
+
+    success = gripper_actions.wait_for_gripper(toGrip=True, max_wait=5, inc_sleep=0.01)
+    if not success:
+        rospy.logerr(
+        "[go_down_until_get_piece] wait_for_gripper Failure")
+        return False
+
+    set_arm_joint_values(angles2, 0.1)
+    rospy.sleep(0.1)
+    return True
+
 
 def set_arm_joint_values(list_of_joint_values, time_to_execute_action):
     """
@@ -96,8 +146,8 @@ def set_arm_joint_values(list_of_joint_values, time_to_execute_action):
 
 def check_arm_joint_values_published(list_of_joint_values=None, static_position_key=None,
                                      accError=[0.009, 0.009, 0.009, 0.009,
-                                               0.009, 0.01, 0.009, 0.009, 0.009],
-                                     max_sleep=8):
+                                               0.015, 0.015, 0.009, 0.009, 0.009],
+                                     max_sleep=8, force_check_piece=False, force_grp_sts=True):
     """
     Check if the actual state values of the joints is equal to the list joint states of the expected position.
 
@@ -112,20 +162,30 @@ def check_arm_joint_values_published(list_of_joint_values=None, static_position_
     inc_sleep = 0.1
     slept = 0
     result = False
-    while not result and slept < max_sleep:
+    grpOK = True
+
+    while not result and slept < max_sleep and grpOK:
         position = global_vars.current_joint_state.position
-        rospy.loginfo("[check_arm_joint_values_published]: position: " + str(position))
+        # rospy.loginfo("[check_arm_joint_values_published]: position: " + str(position))
         result, listRest = utils.comparePosition(
             position, final_joint_values, accError)
         if(not result):
             rospy.sleep(inc_sleep)
             slept += inc_sleep
+            if(force_check_piece):
+                grpOK = (global_vars.gripper_state.attached == force_grp_sts)    
 
     if(not result):
         rospy.logerr("[check_arm_joint_values_published] - Goal not reached")
         rospy.logerr(
             "[check_arm_joint_values_published] - List Joint: " + str(listRest))
         rospy.logerr("[check_arm_joint_values_published] - Expected position " +
-                     str(position) + " | Actual position " + str(position))
+                     str(final_joint_values) + " | Actual position " + str(position))
+        return False
     else:
-        rospy.loginfo("[check_arm_joint_values_published] - Goal Reached")
+        if (not grpOK):
+            rospy.logerr("[check_arm_joint_values_published] - Gripper Failed")
+            return False
+        else:    
+            rospy.loginfo("[check_arm_joint_values_published] - Goal Reached")
+            return True

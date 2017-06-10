@@ -10,7 +10,8 @@ STATIC_POSITIONS = {
     "disBelAgv2": [1.76, -2.10, -0.88, 5.91, 3.77, -1.57, 0.0],
     "disBelAgv1": [1.76, 2.10, -1.26, 0.13, 4.15, -1.57, 0.0],
     "belt": [1.89, 1.19, -1.13, 0, 4.52, -1.57, 0.0],
-    "initial_position": [2.51, 0.0, -1.13, 3.14, 3.14, -1.51, 0.0]
+    "initial_position": [2.51, 0.0, -1.13, 3.14, 3.14, -1.51, 0.0],
+    "rest_position" : [2.75, 0.0, -1.308996939, 3.1415926536, 3.27, -1.5707963268, 0.0],
 }
 
 BIN_CAMERA = {
@@ -41,6 +42,16 @@ TRAY_POSITIONS2 = {
     2: [0, 0.15, 0.03]
 }
 
+# ARM_JOINT ={
+#     'elbow_joint':0,
+#     'linear_arm_actuator_joint':1,
+#     'shoulder_lift_joint':2,
+#     'shoulder_pan_joint':3,
+#     'wrist_1_joint':4,
+#     'wrist_2_joint':5,
+#     'wrist_3_joint':6,    
+
+# }
 
 ARM_JOINT_NAMES = [
     'elbow_joint',
@@ -80,3 +91,4 @@ this_dir = os.path.abspath(os.path.dirname(__file__))
 template_files = [
     os.path.join(this_dir, '..', '..', '..', 'config', 'figment_gear_conf.yaml')
 ]
+
