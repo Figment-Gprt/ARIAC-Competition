@@ -204,20 +204,28 @@ def check_arm_joint_values_published(list_of_joint_values=None, static_position_
             return True
 
 
-def turnAndMoveSideWays(turn_wrist, move_side):
+def turnWrist(turn_wrist):
+        position = global_vars.current_joint_state.position
+        angles = []
+        angles.extend(position)
+        angles[5] = turn_wrist
+
+        set_arm_joint_values(angles, 0.1)
+
+        check_arm_joint_values_published(
+            list_of_joint_values=angles)
+
+
+def MoveSideWays(move_side):
         
         position = global_vars.current_joint_state.position
         angles = []
         angles.extend(position)
         angles[1] = angles[1] + move_side 
-        rospy.loginfo("[check_arm_joint_values_published] - Goal Reached" + str(angles[5]))
-        angles[5] = angles[5] + turn_wrist
-        rospy.loginfo("[check_arm_joint_values_published] - Goal Reached" + str(angles[5]))
         
-
         # msg = utils.createJointTrajectory(angles, time=1)
         # joint_trajectory_publisher.publish(msg)
-        set_arm_joint_values(angles, 0.1)
+        set_arm_joint_values(angles, 0.8)
 
         check_arm_joint_values_published(
             list_of_joint_values=angles)
@@ -265,7 +273,7 @@ def moveToolTip(incrementZ=0.3, incrementX=0.1, timeToGoal=0.2):
 
         # msg = utils.createJointTrajectory(angles, time=1)
         # joint_trajectory_publisher.publish(msg)
-        set_arm_joint_values(angles, 0.1)
+        set_arm_joint_values(angles, timeToGoal)
 
         check_arm_joint_values_published(
             list_of_joint_values=angles)
