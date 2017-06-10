@@ -3,9 +3,11 @@ import arm_actions
 import global_vars
 import rospy
 import transform
+import utils
 
 from utils import PickPlaces
 from constants import *
+from trajectory_msgs.msg import JointTrajectory
 import gripper_actions
 
 class ExecBin:
@@ -39,7 +41,7 @@ class ExecBin:
                 if part_origin == PickPlaces.ANY_BIN.value:
                     rospy.loginfo("\n\n[ExecutePart]: STEP 1 \n")
                     # step 0 - get available pose for a part on any bin
-                    camera_id, part_id = global_vars.tf_manager.find_part_name("piston_rod_part_4")
+                    camera_id, part_id = global_vars.tf_manager.find_part_name(part_type)
                     if(camera_id is None or part_id is None):
                         rospy.loginfo(
                             "[ExecutePart]:Failed. No available part {} found".format(part_type))
@@ -123,11 +125,34 @@ class ExecBin:
 
                 exec_step =+1 #STEP  - DONE
 
-###################       STEP 6       ##########################################                
 
-            if(exec_step <= 6 and not self.exec_part.isInterupted()): #STEP 6 - Temporary Debug
-                
+###################       STEP 6       ##########################################
+
+            if(exec_step <= 6 and not self.exec_part.isInterupted()): #STEP 5 - Verify if piece is pulley part                  
+
                 rospy.loginfo("\n\n[ExecutePart]: STEP 6 \n")
+                
+                if(part_type == "gear_part"):
+                	rospy.sleep(1)
+                	arm_actions.moveToolTip(0.2, 0.1, 1.4)
+
+                	arm_actions.turnAndMoveSideWays(0.01, 0.022)
+                	
+                		
+                if not success:
+                    rospy.loginfo("[ExecutePart]: step failed. Reseting")
+                    self.part_plan.part.reset()
+                    return False
+
+                exec_step =+1 #STEP  - DONE
+                rospy.sleep(3)
+
+
+###################       STEP 7       ##########################################                
+
+            if(exec_step <= 7 and not self.exec_part.isInterupted()): #STEP 6 - Temporary Debug
+                
+                rospy.loginfo("\n\n[ExecutePart]: STEP 7 \n")
                 gripper_actions.send_gripping_cmd(toGrip=False)
                 gripper_actions.wait_for_gripper(toGrip=False, max_wait=5, inc_sleep=0.01)
                 rospy.sleep(0.5)
@@ -141,7 +166,7 @@ class ExecutePart:
     def __init__(self, partPlan):
         self.partPlan = partPlan
         self.interrupt = False
-
+        
     def interupt_call_back():
         self.interrupt = True
         
@@ -162,6 +187,7 @@ class ExecutePart:
 
 
         angles = arm_actions.go_to_part_bin_front(part_world_position)
+
 
         # checking joint states
         success = arm_actions.check_arm_joint_values_published(list_of_joint_values=angles, 
@@ -230,7 +256,6 @@ class ExecutePart:
         # if part is on the tray
         elif "tray" in part_origin:
             pass
-
 
 
 

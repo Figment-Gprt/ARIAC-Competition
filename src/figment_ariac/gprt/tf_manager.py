@@ -89,7 +89,7 @@ class TfManager:
             transform_list.append(self.get_transform(father, child))
             child = father
 
-        rospy.loginfo("[TfManager]: Transforms list: " + str(transform_list))
+        #rospy.loginfo("[TfManager]: Transforms list: " + str(transform_list))
         return transform_list
 
 
@@ -211,18 +211,18 @@ class Graph:
         """
             Find path from node A to node B
         """
-        rospy.loginfo("[TfManager]: Finding Path from " + str(nodeA) + " to " + str(nodeB))
+        #rospy.loginfo("[TfManager]: Finding Path from " + str(nodeA) + " to " + str(nodeB))
         finalNode = ""
         path = [nodeA]
         stack = list(self._graph[nodeA])
         while len(stack) > 0:
             finalNode = stack.pop()
-            rospy.loginfo("[TfManager]: Node " + str(finalNode) + " in path")
+            #rospy.loginfo("[TfManager]: Node " + str(finalNode) + " in path")
             path.append(finalNode)
             if finalNode != nodeB:
                 stack.extend(self._graph[finalNode])
 
-        rospy.loginfo("[TfManager]: Final List: " + str(path))
+        #rospy.loginfo("[TfManager]: Final List: " + str(path))
         return path if finalNode == nodeB else []
             
 
