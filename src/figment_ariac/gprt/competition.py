@@ -92,7 +92,7 @@ def camera_callback(msg, objs):
     objects_hash = str(hash("".join([obj.type for obj in msg.models])))
     if global_vars.logical_cameras[camera_id]["hash"] != objects_hash:
         global_vars.logical_cameras[camera_id]["hash"] = objects_hash
-        if camera_id == BIN_CAMERA["belt"]:
+        if camera_id == ORIGN_CAMERA["belt"]:
             if len(msg.models) > 0:
                 for model in msg.models:
                     if "part" in model.type:

@@ -25,6 +25,7 @@ class ExecBin:
 ###################       STEP 0       ##########################################        
 
         while(not failed_comple and not done and not self.exec_part.isInterupted()):
+            jump = False
 
             if(exec_step <= 0): #STEP 0 - Setup env
                 part_origin = self.part_plan.pick_piece.origin.value
@@ -37,7 +38,7 @@ class ExecBin:
 
 ###################       STEP 1       ##########################################
 
-            if(exec_step <= 1 and not self.exec_part.isInterupted()): #STEP 1 - Check Any BIN
+            if(not jump and exec_step <= 1 and not self.exec_part.isInterupted()): #STEP 1 - Check Any BIN
 
                 if part_origin == PickPlaces.ANY_BIN.value:
                     rospy.loginfo("\n\n[ExecutePart]: STEP 1 \n")
@@ -60,7 +61,7 @@ class ExecBin:
 
 ###################       STEP 2       ##########################################  
 
-            if(exec_step <= 2 and not self.exec_part.isInterupted()): #STEP 2 - Check Any BIN                  
+            if(not jump and exec_step <= 2 and not self.exec_part.isInterupted()): #STEP 2 - Check Any BIN                  
                 
                 rospy.loginfo("\n\n[ExecutePart]: STEP 2 \n")
                 # step 1 - move to position in front of the piece
@@ -74,7 +75,7 @@ class ExecBin:
 
 ###################       STEP 3       ##########################################                     
 
-            if(exec_step <= 3 and not self.exec_part.isInterupted()): #STEP 3 - move to position a bit above the part
+            if(not jump and exec_step <= 3 and not self.exec_part.isInterupted()): #STEP 3 - move to position a bit above the part
 
                 rospy.loginfo("\n\n[ExecutePart]: STEP 3 \n")
                 max_attempt = 3
@@ -98,7 +99,7 @@ class ExecBin:
 
 ###################       STEP 4       ########################################## 
 
-            if(exec_step <= 4 and not self.exec_part.isInterupted()): #STEP 4 - move to position a bit above the part           
+            if(not jump and exec_step <= 4 and not self.exec_part.isInterupted()): #STEP 4 - move to position a bit above the part           
 
                 rospy.loginfo("\n\n[ExecutePart]: STEP 4 \n")
                 # 3 - go down until get the part
@@ -114,11 +115,11 @@ class ExecBin:
 
 ###################       STEP 5       ##########################################
 
-            if(exec_step <= 5 and not self.exec_part.isInterupted()): #STEP 5 - Move back to initial position with the piece                  
+            if(not jump and exec_step <= 5 and not self.exec_part.isInterupted()): #STEP 5 - Move back to initial position with the piece                  
 
                 rospy.loginfo("\n\n[ExecutePart]: STEP 5 \n")
                 success = self.exec_part.move_wait_front_part(part_world_position=part_world_position, 
-                                force_check_piece=False, force_grp_sts=True)
+                                force_check_piece=True, force_grp_sts=True)
                 if not success:
                     rospy.loginfo("[ExecutePart]: step failed. Reseting")
                     self.part_plan.part.reset()
@@ -127,7 +128,7 @@ class ExecBin:
                 exec_step =+1 #STEP  - DONE
 
 ###################       STEP 6       ##########################################                
-            if(exec_step <= 6 and not self.exec_part.isInterupted()): #STEP 6 - Move To TRAY
+            if(not jump and exec_step <= 6 and not self.exec_part.isInterupted()): #STEP 6 - Move To TRAY
                 rospy.loginfo("\n\n[ExecutePart]: STEP 6 \n")
                 success = self.exec_part.move_to_tray(tray_id)
                 # success = self.exec_part.move_wait_front_part(part_world_position)
@@ -139,21 +140,54 @@ class ExecBin:
                 exec_step =+1 #STEP  - DONE
 
 ###################       STEP 7       ##########################################                
-            if(exec_step <= 7 and not self.exec_part.isInterupted()): #STEP 7 - Put Part at tray
+            if(not jump and exec_step <= 7 and not self.exec_part.isInterupted()): #STEP 7 - Put Part at tray
                 rospy.loginfo("\n\n[ExecutePart]: STEP 7 \n")
                 
                 success = self.exec_part.deposit_at_tray(desired_part_pose=desired_part_pose, part_type=part_type, tray_id=tray_id, force_check_piece=True)
 
                 if not success:
                     rospy.loginfo("[ExecutePart]: step7 failed. Reseting")
-                    self.part_plan.part.reset()
-                    return False
+                                        
+                    camera_id, part_id = global_vars.tf_manager.find_part_name(part_name=part_type, 
+                                                                    dad="logical_camera_agv_1_frame")
+                    r = self.exec_part.find_part_any_agvs(camera_id, part_id, part_type)
+                    
+                    #print ("\n\n\n\n " + str(part_world_position) + " \n\n\n\n\n")
+                    #print ("\n\n\n\n " + str(part_world_orientation) + " \n\n\n\n\n")
+                    #print ("\n\n\n\n " + str(part_type) + " \n\n\n\n\n") 
+                    
+                    part_world_position, part_world_orientation = r
 
-                exec_step =+1 #STEP  - DONE
+                    #print ("_____________________________________________________________________________")
+                    print ("\n\n\n\n " + str(part_world_position) + " \n\n\n\n\n")
+                    print ("\n\n\n\n " + str(part_world_orientation) + " \n\n\n\n\n")
+                    print ("\n\n\n\n " + str(part_type) + " \n\n\n\n\n") 
+
+                    #TODO MOVE UP A BIT
+                    success = self.exec_part.move_wait_above_part(part_world_position, part_world_orientation, part_type, arm_actions.SolverType.AGV1, 0.1)
+                    success = arm_actions.go_down_until_get_piece(world_position=part_world_position, 
+                                                                world_orientation=part_world_orientation, 
+                                                                part_type=part_type, 
+                                                                time=3, ignoreHeight=False, 
+                                                                distance=0.01, solver_type=arm_actions.SolverType.AGV1)
+                    #TODO MOVE UP A BIT
+
+                    rospy.logerr("........................................................................")
+                    if success :
+                        rospy.logerr("....................SUCCESS................................")
+                        exec_step = 7 #We are coming back here
+                        jump = True
+
+                    else:
+                        rospy.logerr("[ExecutePart]: step7 failed. We do not know what to do yet")
+                        exec_step =+1 #STEP  - DONE
+                else:                    
+
+                    exec_step =+1 #STEP  - DONE
 
 
 ###################       STEP 8       ##########################################                
-            if(exec_step <= 8 and not self.exec_part.isInterupted()): #STEP 8 - Move To TRAY
+            if(not jump and exec_step <= 8 and not self.exec_part.isInterupted()): #STEP 8 - Move To TRAY
                 rospy.loginfo("\n\n[ExecutePart]: STEP 8 \n")
                 
                 success = self.exec_part.move_to_tray(tray_id, force_check_piece=False)
@@ -225,14 +259,15 @@ class ExecutePart:
             else:
                 return True
 
-    def move_wait_above_part(self, part_world_position, part_world_orientation, part_type, solver_type=arm_actions.SolverType.BIN):
+    def move_wait_above_part(self, part_world_position, part_world_orientation, part_type, solver_type=arm_actions.SolverType.BIN, a_bit_above_value=0.015):
         rospy.loginfo("[ExecutePart]: move_wait_above_part: "+ str(part_world_position))
         list_joint_values = arm_actions.go_to_position_a_bit_above_part(
             world_position=part_world_position,
             world_orientation=part_world_orientation,
             part_type=part_type, 
             time_to_execute_action=3, 
-            solver_type=solver_type)
+            solver_type=solver_type,
+            a_bit_above_value=a_bit_above_value)
 
         success = arm_actions.check_arm_joint_values_published(
             list_of_joint_values=list_joint_values)       
@@ -245,7 +280,20 @@ class ExecutePart:
             rospy.loginfo("[ExecutePart]: camera_id: "+ str(camera_id))
             rospy.loginfo("[ExecutePart]: part: "+ str(part_id))
             # getting bin id from the part
-            for k, v in BIN_CAMERA.items():
+            for k, v in BINS_CAMERA.items():
+                if v in camera_id:
+                    part_origin = k
+                    break
+            # getting position and orientation from the part
+            transforms_list = global_vars.tf_manager.get_transform_list(part_id, 'world')
+            return transform.transform_list_to_world(transforms_list)
+
+    def find_part_any_agvs(self, camera_id, part_id, part_type):
+        if len(camera_id) > 0:
+            rospy.loginfo("[ExecutePart]: camera_id: "+ str(camera_id))
+            rospy.loginfo("[ExecutePart]: part: "+ str(part_id))
+            # getting bin id from the part
+            for k, v in AGVS_CAMERA.items():
                 if v in camera_id:
                     part_origin = k
                     break

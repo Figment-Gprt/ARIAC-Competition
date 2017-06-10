@@ -14,18 +14,31 @@ STATIC_POSITIONS = {
     "rest_position" : [2.75, 0.0, -1.308996939, 3.1415926536, 3.27, -1.5707963268, 0.0],
 }
 
-BIN_CAMERA = {
+BINS_CAMERA = {
     "bin5"	: "logical_camera_bin_5_6",
     "bin6"	: "logical_camera_bin_5_6",
     "bin7"	: "logical_camera_bin_7_8",
-    "bin8"	: "logical_camera_bin_7_8",
-    "belt"	: "logical_camera_5"
+    "bin8"	: "logical_camera_bin_7_8"
 }
 
-AGV_CAMERA = {
-    "agv1": "logical_camera_3_agv1",
-    "agv2": "logical_camera_4_agv2",
+AGVS_CAMERA = {
+    "agv1": "logical_camera_agv_1",
+    "agv2": "logical_camera_agv_2",
 }
+
+BELT_CAMERA = {
+    "belt"  : "logical_camera_belt_1"
+}
+
+ORIGN_CAMERA = {}
+ORIGN_CAMERA.update(BINS_CAMERA)
+ORIGN_CAMERA.update(BELT_CAMERA)
+
+ALL_CAMERA = {}
+ALL_CAMERA.update(ORIGN_CAMERA)
+ALL_CAMERA.update(AGVS_CAMERA)
+
+
 
 TRAY_FRAME = {
     1 : "agv1_load_point_frame",

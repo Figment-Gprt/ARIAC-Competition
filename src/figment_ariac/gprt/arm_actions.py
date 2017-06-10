@@ -107,22 +107,36 @@ def go_to_position_a_bit_above_part(world_position, world_orientation, part_type
 
 
 def go_down_until_get_piece(world_position, world_orientation, part_type, 
-    time=3, ignoreHeight=False, distance=0.01):
+    time=3, ignoreHeight=False, distance=0.01, solver_type=SolverType.BIN, ignore_height=False):
     
     rospy.loginfo("[Arm Actions] go_down_until_get_piece")
     tfPos = world_position
     tfOri = world_orientation
     position = [tfPos[0], tfPos[1], tfPos[2] - distance]
-
+    position2 = [tfPos[0], tfPos[1], tfPos[2] + 0.02]
 
     rospy.loginfo(
         "[go_down_until_get_piece] goDownUntilGetPiece pos = " + str(position))
-    angles = solverBin(position, tfOri, part_type,
-                       ignoreHeight=ignoreHeight)
 
-    position2 = [tfPos[0], tfPos[1], tfPos[2] + 0.02]
-    angles2 = solverBin(position2, tfOri, part_type,
-                        ignoreHeight=ignoreHeight)
+    if solver_type == SolverType.BIN:
+        angles = solverBin(
+            position, tfOri, part_type, ignore_height)
+        angles2 = solverBin(
+            position2, tfOri, part_type, ignore_height)
+
+    elif solver_type == SolverType.AGV1:  #TODO implement ignore_height
+        rospy.loginfo(
+        "[go_down_until_get_piece] SolverType.AGV1" )
+        angles = depositOnTray1(
+            position, tfOri, part_type)
+        angles2= depositOnTray1(
+            position2, tfOri, part_type)        
+    elif solver_type == SolverType.AGV2:
+        angles = depositOnTray2(
+            position, tfOri, part_type)
+        angles2 = depositOnTray2(
+            position2, tfOri, part_type)        
+
 
 
     set_arm_joint_values(angles, time)
