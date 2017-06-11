@@ -48,7 +48,9 @@ class ExecBin:
                 if part_origin == PickPlaces.ANY_BIN.value:
                     rospy.loginfo("\n\n[ExecutePart]: STEP 1 \n")
                     # step 0 - get available pose for a part on any bin
-                    camera_id, part_id = global_vars.tf_manager.find_part_name(part_type)
+                    camera_id, part_id = global_vars.tf_manager.find_part_name(part_name=part_type, 
+                                                                        dad=None, 
+                                                                        sub_dad="logical_camera_bin")
                     if(camera_id is None or part_id is None):
                         rospy.loginfo(
                             "[ExecutePart]:Failed. No available part {} found".format(part_type))
@@ -356,7 +358,12 @@ class ExecutePart:
         success = arm_actions.check_arm_joint_values_published(list_of_joint_values=angles, 
                                             force_check_piece=False, force_grp_sts=True)
         if not success:
-            rospy.logerr("[ExecutePart]: move_wait_front_part failed")
+            rospy.logerr("\n[ExecutePart]: move_wait_front_part failed")
+            rospy.logerr("[ExecutePart]: part_world_position: " + str(part_world_position))
+            rospy.logerr("[ExecutePart]: force_check_piece: " + str(force_check_piece))
+            rospy.logerr("[ExecutePart]: force_grp_sts: " + str(force_grp_sts))
+            rospy.logerr("[ExecutePart]: list_of_joint_values: " + str(angles))
+            rospy.logerr("\n\n")
             return False
         else:
             if(force_check_piece):
