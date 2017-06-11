@@ -4,8 +4,12 @@ import order_utils
 import execution
 import global_vars
 import math
+import sys
 
+from constants import *
 from utils import PickPlaces
+from osrf_gear.srv import GetMaterialLocations
+
 
 class PickPiece:
 
@@ -238,8 +242,25 @@ class Scheduler:
                 parent_kit.plan = kit_plan    
 
 
+        part_place = self.check_part_origin(working_part.part_type)
+        rospy.loginfo("[Scheduler]: part_place" + str(part_place))
+
         
-        pick_piece = PickPiece(PickPlaces.ANY_BIN, None, None)
+        for init_id in part_place:
+            # part will be spawned at belt
+            if init_id.unit_id == "belt":
+                # checking if part is available at belt
+                cam_id, part_id = global_vars.tf_manager.find_part_name(part_name=working_part.part_type, dad=ORIGN_CAMERA['belt']+"_frame")
+                if len(cam_id) > 0 and len(part_id) > 0:
+                    rospy.loginfo("[Scheduler]: PART " + part_id + " AVAILABLE AT BELT")
+                    pick_piece = PickPiece(PickPlaces.BELT, None, None)
+                    break
+
+            elif "bin" in init_id.unit_id:
+                rospy.loginfo("[Scheduler]: PART " + working_part.part_type + " AVAILABLE AT BIN")
+                pick_piece = PickPiece(PickPlaces.ANY_BIN, None, None)
+                break
+        
         part_plan = PartPlan(part = working_part, 
                         pick_piece=pick_piece, kit_plan = kit_plan)
 
@@ -294,5 +315,15 @@ class Scheduler:
                 return kit
 
 
-
-
+    #ask ariac service where the part is storaged
+    def check_part_origin(self, part_type):
+        service_name = "/ariac/material_locations"
+        rospy.wait_for_service(service_name)
+        try:
+            material_location = rospy.ServiceProxy(
+                service_name, GetMaterialLocations)
+            location = material_location(part_type)
+            return location.storage_units
+        except rospy.ServiceException as exc:
+            rospy.logerr("Failed to get the material location: %s" % exc)
+            return []

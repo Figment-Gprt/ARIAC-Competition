@@ -3,6 +3,7 @@ import arm_actions
 import global_vars
 import rospy
 import transform
+import sys
 
 from utils import *
 from constants import *
@@ -218,8 +219,10 @@ class ExecBin:
 
                 if(self.part_plan.dest_tray_id == 1):
                     faulty_sensor_msg = global_vars.faulty_sensor1
+                    sensor_name = "quality_control_sensor_1_frame"
                 elif(self.part_plan.dest_tray_id == 2): 
                     faulty_sensor_msg = global_vars.faulty_sensor1    
+                    sensor_name = "quality_control_sensor_2_frame"
                 else:
                     rospy.logerr("[ExecutePart]: step8 failed. We do not know what to do yet")
                     self.part_plan.part.reset()
@@ -230,10 +233,11 @@ class ExecBin:
 
                     rospy.loginfo("[ExecutePart][STEP8] - Falty part detected")
                     rospy.sleep(5) #TODO REMOVE
-                    falty_pose = faulty_sensor_msg[0].pose
-                    #TODO falty_pose SENSOR to WORLD
-                    part_world_position = [falty_pose.position.x, falty_pose.position.y, falty_pose.position.z]
-                    part_world_orientation = [falty_pose.orientation.x, falty_pose.orientation.y, falty_pose.orientation.z]
+
+                    sensor_id, faulty_party_id = global_vars.tf_manager.find_part_name(part_type, sensor_name)
+
+                    transforms_list = global_vars.tf_manager.get_transform_list(faulty_party_id, 'world')
+                    part_world_position, part_world_orientation = transform.transform_list_to_world(transforms_list)
 
                     solver = arm_actions.SolverType.AGV1 if tray_id == 1 else arm_actions.SolverType.AGV2
                     
