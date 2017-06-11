@@ -219,13 +219,15 @@ class ExecBin:
 #TODO Check falty if the part dropped at tray as well(improve performance)
             if(not jump and exec_step <= 8 and not self.exec_part.isInterupted()): 
                 rospy.loginfo("\n\n[ExecutePart]: STEP 8 \n")
-
+                rospy.sleep(1)#If we dont sleep we do not find the faulty one on this iteration
                 if(self.part_plan.dest_tray_id == 1):
                     faulty_sensor_msg = global_vars.faulty_sensor1
                     sensor_name = "quality_control_sensor_1_frame"
+                    angles_discard = STATIC_POSITIONS["disBelAgv1"]
                 elif(self.part_plan.dest_tray_id == 2): 
                     faulty_sensor_msg = global_vars.faulty_sensor1    
                     sensor_name = "quality_control_sensor_2_frame"
+                    angles_discard = STATIC_POSITIONS["disBelAgv2"]
                 else:
                     rospy.logerr("[ExecutePart]: step8 failed. We do not know what to do yet")
                     self.part_plan.part.reset()
@@ -243,20 +245,40 @@ class ExecBin:
                     part_world_position, part_world_orientation = transform.transform_list_to_world(transforms_list)
 
                     solver = arm_actions.SolverType.AGV1 if tray_id == 1 else arm_actions.SolverType.AGV2
-                    
+                    rospy.loginfo("[ExecutePart][STEP8] - Move ToolTip Up")                    
                     arm_actions.moveToolTip(0.3, 0.1, 1.4)
+                    rospy.sleep(5) #TODO REMOVE
                     
+                    rospy.loginfo("[ExecutePart][STEP8] - Move Wait a bit above")
                     success = self.exec_part.move_wait_above_part(part_world_position, part_world_orientation, part_type, solver, 0.1)
+                    rospy.sleep(5) #TODO REMOVE
 
+                    rospy.loginfo("[ExecutePart][STEP8] - Go down untill get")
                     success = arm_actions.go_down_until_get_piece(world_position=part_world_position, 
                                                                 world_orientation=part_world_orientation, 
                                                                 part_type=part_type, 
                                                                 time=3, ignore_height=False, 
                                                                 distance=0.01, solver_type=arm_actions.SolverType.AGV1)
-                    
-                    arm_actions.moveToolTip(0.3, 0.1, 1.4)
+                    rospy.sleep(5) #TODO REMOVE
 
-                    arm_actions.go_to_discard_from_agv1(1)
+
+                    rospy.loginfo("[ExecutePart][STEP8] - Move ToolTip Up")                    
+                    arm_actions.moveToolTip(0.3, 0.1, 1.4)
+                    rospy.sleep(5) #TODO REMOVE
+
+                    
+                    rospy.loginfo("[ExecutePart][STEP8] - Go to discard pos")  
+                    arm_actions.set_arm_joint_values(list_of_joint_values=angles_discard,
+                        time_to_execute_action=1)
+
+                    arm_actions.check_arm_joint_values_published(list_of_joint_values=angles_discard)
+
+                    rospy.loginfo("[ExecutePart][STEP8] - discard pos") 
+                    success = gripper_actions.send_gripping_cmd_and_wait(False)
+                    if(not success):
+                        rospy.logerr("[ExecutePart]: step8 failed. We do not know what to do yet")
+                        self.part_plan.part.reset()
+                        return False
 
                     self.part_plan.part.reset()
                     return False

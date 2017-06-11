@@ -40,3 +40,16 @@ def wait_for_gripper(toGrip, max_wait, inc_sleep=0.1):
     except rospy.ServiceException as exc:
         rospy.logerr("[GripperActions] Wait for gripper failed: %s" % exc)
         return False
+
+def send_gripping_cmd_and_wait(toGrip, max_wait=5, inc_sleep=0.01):
+    success = send_gripping_cmd(toGrip)
+    if not success:
+        rospy.logerr(
+        "[send_gripping_cmd_and_wait] send_gripping_cmd Failure")
+        return False
+
+    success = wait_for_gripper(toGrip=toGrip, max_wait=max_wait, inc_sleep=inc_sleep)
+    if not success:
+        rospy.logerr(
+        "[send_gripping_cmd_and_wait] wait_for_gripper Failure")
+        return False
