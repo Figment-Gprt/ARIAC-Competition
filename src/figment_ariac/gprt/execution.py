@@ -118,7 +118,7 @@ class ExecBin:
 
 ###################       STEP 5       ##########################################
 
-            if(not jump and exec_step <= 5 and not self.exec_part.isInterupted()): #STEP 5 - Verify if piece is pulley part                  
+            if(not jump and exec_step <= 5 and not self.exec_part.isInterupted()): #STEP 5 - Going down to get part and flipping if needed
 
                 rospy.loginfo("\n\n[ExecutePart]: STEP 5 \n")
 
@@ -407,7 +407,7 @@ class ExecutePart:
         # rospy.loginfo("\n\nSTEP 5 - PASSO 3 \n")
         
         
-        arm_actions.moveToolTip(-0.275, 0.15, 0.5)
+        arm_actions.moveToolTip(-0.275, 0.13, 0.5)
         # rospy.loginfo("\n\nSTEP 5 - PASSO 4 \n")
         # rospy.sleep(30)
 
@@ -424,7 +424,7 @@ class ExecutePart:
         arm_actions.turnWrist(-1.5707963268)
         # rospy.loginfo("\n\nSTEP 5 - PASSO 7 \n")
 
-         # Move ToolTip UP
+        # Move ToolTip UP
         arm_actions.moveToolTip(0.4, 0, 0.3)
         # rospy.loginfo("\n\nSTEP 5 - PASSO 8 \n")
         
@@ -434,7 +434,7 @@ class ExecutePart:
         rospy.sleep(0.3)
         
         # Move ToolTip Down
-        arm_actions.moveToolTip(-0.01, 0.225, 0.2)
+        arm_actions.moveToolTip(-0.01, 0.23, 0.2)
         # rospy.loginfo("\n\nSTEP 5 - PASSO 10 \n")
         rospy.sleep(0.7)
         
@@ -460,17 +460,19 @@ class ExecutePart:
 
         rospy.sleep(1)
 
-        success = self.move_wait_above_part(part_world_position, 
+        self.move_wait_above_part(part_world_position, 
                                             part_world_orientation, 
                                             part_type)
 
-        if success:
-            success = arm_actions.go_down_until_get_piece(part_world_position, 
-                                            part_world_orientation, 
-                                            part_type, ignore_height=True)
-            return True
+        
+        success = arm_actions.go_down_until_get_piece(part_world_position, 
+                                        part_world_orientation, 
+                                        part_type, ignore_height=True)
 
-        return False
+        # Move ToolTip UP
+        arm_actions.moveToolTip(0.2, 0, 0.3)
+
+        return success
         
 
 
