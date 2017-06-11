@@ -16,9 +16,13 @@ STATIC_POSITIONS = {
 
 BINS_CAMERA = {
     "bin5"	: "logical_camera_bin_5_6",
-    "bin6"	: "logical_camera_bin_5_6",
-    "bin7"	: "logical_camera_bin_7_8",
-    "bin8"	: "logical_camera_bin_7_8"
+    "bin6"	: ["logical_camera_bin_5_6", "logical_camera_bin_6_7"],
+    "bin7"	: ["logical_camera_bin_6_7", "logical_camera_bin_7_8"],
+    "bin8"	: "logical_camera_bin_7_8",
+    "bin1"  : "logical_camera_bin_1_2",
+    "bin2"  : ["logical_camera_bin_1_2", "logical_camera_bin_2_3"],
+    "bin3"  : ["logical_camera_bin_2_3", "logical_camera_bin_3_4"],
+    "bin4"  : ["logical_camera_bin_3_4"]
 }
 
 AGVS_CAMERA = {
