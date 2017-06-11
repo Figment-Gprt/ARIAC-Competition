@@ -31,7 +31,7 @@ class TfManager:
         # 
         father = ""
         child = ""
-        if dad is not None:
+        if dad is not None and dad in self.transforms_dynamic:
             for k_child in self.transforms_dynamic[dad].keys():
                 if part_name in k_child and k_child not in self.part_id_black_list:
                     child = k_child
