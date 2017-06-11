@@ -4,17 +4,17 @@ from constants import *
 import rospy
 
 
-def solverBin(pos, rot, object_type, ignoreHeight=False):
+def solverBin(pos, rot, object_type, ignore_height=False):
 
 	rospy.loginfo(
-		'[solverBin] pos: {}; rot: {}; object_type {}; ignoreHeight: {}'.format(
-		pos, rot, object_type, ignoreHeight))
+		'[solverBin] pos: {}; rot: {}; object_type {}; ignore_height: {}'.format(
+		pos, rot, object_type, ignore_height))
 	X_PIECE = pos[0]
 	Y_PIECE = pos[1]
 	Z_PIECE = pos[2]
 
 	object_height = OBJECT_HEIGHT[object_type.upper()]
-	if(not ignoreHeight):
+	if(not ignore_height):
 		Z_PIECE+=object_height
 
 	# if object_type == "pulley_part":
