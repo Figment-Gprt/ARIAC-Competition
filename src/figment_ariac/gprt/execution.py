@@ -181,14 +181,19 @@ class ExecBin:
                     print ("\n\n\n\n " + str(part_world_orientation) + " \n\n\n\n\n")
                     print ("\n\n\n\n " + str(part_type) + " \n\n\n\n\n") 
 
-                    #TODO MOVE UP A BIT
-                    success = self.exec_part.move_wait_above_part(part_world_position, part_world_orientation, part_type, arm_actions.SolverType.AGV1, 0.1)
+                    solver = arm_actions.SolverType.AGV1 if tray_id == 1 else arm_actions.SolverType.AGV2
+                    
+                    arm_actions.moveToolTip(0.3, 0.1, 1.4)
+                    
+                    success = self.exec_part.move_wait_above_part(part_world_position, part_world_orientation, part_type, solver, 0.1)
+
                     success = arm_actions.go_down_until_get_piece(world_position=part_world_position, 
                                                                 world_orientation=part_world_orientation, 
                                                                 part_type=part_type, 
                                                                 time=3, ignoreHeight=False, 
                                                                 distance=0.01, solver_type=arm_actions.SolverType.AGV1)
-                    #TODO MOVE UP A BIT
+                    
+                    arm_actions.moveToolTip(0.3, 0.1, 1.4)
 
                     rospy.logerr("........................................................................")
                     if success :
