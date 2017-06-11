@@ -3,6 +3,7 @@ import rospy
 import order_utils
 import execution
 import global_vars
+import math
 
 from utils import PickPlaces
 
@@ -45,6 +46,11 @@ class PartPlan:
         self.dest_tray_id = kit_plan.dest_tray_id
         self.pick_piece = pick_piece
         self.planning_score = -1
+        # in quaternion representation 1 = PI
+        if (self.part.desired_pose.orientation.x == 1.0 or self.part.desired_pose.orientation.y == 1.0) and self.part.part_type == "pulley_part":
+            self.to_flip = True
+        else:
+            self.to_flip = False
 
     def compute_score(self):
         pass

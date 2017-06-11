@@ -39,13 +39,13 @@ def go_to_initial_position():
     set_arm_joint_values(list_of_joint_values=STATIC_POSITIONS[
                          "initial_position"], time_to_execute_action=0.5)
 
-def go_to_tray_position(tray_id):
+def go_to_tray_position(tray_id, time=2):
     """
     Move the arm to static position in front of the tray
     tray_id - key for the wanted tray to be used in the STATIC_POSITIONS MAP.
     """
 
-    set_arm_joint_values(STATIC_POSITIONS[tray_id], 2)
+    set_arm_joint_values(STATIC_POSITIONS[tray_id], time)
 
     return STATIC_POSITIONS[tray_id]
 
@@ -239,7 +239,7 @@ def MoveSideWays(move_side):
         
         # msg = utils.createJointTrajectory(angles, time=1)
         # joint_trajectory_publisher.publish(msg)
-        set_arm_joint_values(angles, 0.8)
+        set_arm_joint_values(angles, 1.2)
 
         check_arm_joint_values_published(
             list_of_joint_values=angles)

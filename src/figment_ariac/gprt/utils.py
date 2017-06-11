@@ -212,7 +212,10 @@ def calculate_order_position(order_pose, agv_id, incrementX=0, incrementY=0, inc
     final_position[0] += TRAY_POSITIONS2[agv_id][0] + incrementX
     final_position[1] += TRAY_POSITIONS2[agv_id][1] + incrementY
     final_position[2] += TRAY_POSITIONS2[agv_id][2] + incrementZ
-    final_rotation = [order_pose.orientation.x, order_pose.orientation.y, order_pose.orientation.z, order_pose.orientation.w]
+
+    final_rotation = transf.transformations.euler_from_quaternion([order_pose.orientation.x, order_pose.orientation.y, order_pose.orientation.z, order_pose.orientation.w])
+
+    
 
     return final_position, final_rotation
 
