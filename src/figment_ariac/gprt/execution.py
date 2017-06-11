@@ -164,19 +164,20 @@ class ExecBin:
             if(not jump and exec_step <= 7 and not self.exec_part.isInterupted()): 
                 rospy.loginfo("\n\n[ExecutePart]: STEP 7 \n")
                 
+                if(self.part_plan.dest_tray_id == 1):
+                    camera_name = AGVS_CAMERA["agv1"]
+                    solver = arm_actions.SolverType.AGV1
+                    incrementY=-0.1
+                elif(self.part_plan.dest_tray_id == 2): 
+                    camera_name = AGVS_CAMERA["agv2"]
+                    solver = arm_actions.SolverType.AGV2
+                    incrementY=0.1
                 success = self.exec_part.deposit_at_tray(desired_part_pose=desired_part_pose, part_type=part_type, tray_id=tray_id, force_check_piece=True)
 
                 if not success:
                     rospy.loginfo("[ExecutePart]: step7 failed. Reseting")
                     # waiting tf_manager update
                     rospy.sleep(1)
-                    if(self.part_plan.dest_tray_id == 1):
-                        camera_name = AGVS_CAMERA["agv1"]
-                        solver = arm_actions.SolverType.AGV1
-                    elif(self.part_plan.dest_tray_id == 2): 
-                        camera_name = AGVS_CAMERA["agv2"]
-                        solver = arm_actions.SolverType.AGV2
-
                     camera_id, part_id = global_vars.tf_manager.find_part_name(part_name=part_name, dad=camera_name)
                     r = self.exec_part.find_part_any_agvs(part_id)
                     
@@ -188,7 +189,7 @@ class ExecBin:
                     print ("\n\n\n\n " + str(part_world_orientation) + " \n\n\n\n\n")
                     print ("\n\n\n\n " + str(part_type) + " \n\n\n\n\n") 
 
-                    arm_actions.moveToolTipZY(0.3, -0.1, 1.4)
+                    arm_actions.moveToolTipZY(0.3, incrementY, 1.4)
                     
                     success = self.exec_part.move_wait_above_part(part_world_position, part_world_orientation, part_type, solver, 0.2)
 
@@ -200,7 +201,7 @@ class ExecBin:
                                                                 time=3, ignore_height=False, 
                                                                 distance=0.01, solver_type=arm_actions.SolverType.AGV1)
                     
-                    arm_actions.moveToolTipZY(0.3, -0.1, 1.4)
+                    arm_actions.moveToolTipZY(0.3, incrementY, 1.4)
 
                     rospy.logerr("........................................................................")
                     if success :
@@ -212,7 +213,7 @@ class ExecBin:
                         rospy.logerr("[ExecutePart]: step7 failed. We do not know what to do yet")
                         exec_step =+1 #STEP  - DONE
                 else:                    
-                    arm_actions.moveToolTipZY(0.3, -0.1, 1.4)
+                    arm_actions.moveToolTipZY(0.3, incrementY, 1.4)
                     exec_step =+1 #STEP  - DONE
 
 ###################       STEP 8       ##########################################  

@@ -297,7 +297,7 @@ def moveToolTipZY(incrementZ=0.3, incrementY=0.1, timeToGoal=0.2):
 
         workingPos = deepcopy(posVacum)
         workingPos[2] += incrementZ
-        workingPos[01] += incrementY
+        workingPos[1] += incrementY
 
 
         shoulderBTriangle = utils.computeYZDistance(posUpperArm, workingPos)
