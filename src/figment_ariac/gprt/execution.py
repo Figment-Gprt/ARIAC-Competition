@@ -508,7 +508,7 @@ class ExecutePart:
 
         gripper_actions.send_gripping_cmd(toGrip=False)
         
-        arm_actions.MoveSideWays(0.1)
+        arm_actions.MoveSideWays(0.05)
         # rospy.loginfo("\n\nSTEP 5 - PASSO 5 \n")
         
         gripper_actions.wait_for_gripper(toGrip=False, max_wait=5, inc_sleep=0.01)
