@@ -110,7 +110,7 @@ def go_to_position_a_bit_above_part(world_position, world_orientation, part_type
 
 
 def go_down_until_get_piece(world_position, world_orientation, part_type, 
-    time=3, ignoreHeight=False, distance=0.01, solver_type=SolverType.BIN, ignore_height=False):
+    time=3, distance=0.01, solver_type=SolverType.BIN, ignore_height=False):
     
     rospy.loginfo("[Arm Actions] go_down_until_get_piece")
     tfPos = world_position
