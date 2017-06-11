@@ -160,6 +160,16 @@ def go_down_until_get_piece(world_position, world_orientation, part_type,
     return True
 
 
+def go_to_discard_from_agv1(time_to_execute_action):
+    angles = STATIC_POSITIONS["disBelAgv1"]
+    set_arm_joint_values(angles, time_to_execute_action)
+
+def go_to_discard_from_agv2(time_to_execute_action):
+    angles = STATIC_POSITIONS["disBelAgv2"]
+    set_arm_joint_values(angles, time_to_execute_action)
+    
+
+
 def set_arm_joint_values(list_of_joint_values, time_to_execute_action):
     """
         Publish the joint values as a JointTrajectory Object

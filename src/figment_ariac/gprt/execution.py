@@ -212,6 +212,7 @@ class ExecBin:
 
 ###################       STEP 8       ##########################################  
 #STEP 8 - Check Falty Piece
+#TODO Check falty if the part dropped at tray as well(improve performance)
             if(not jump and exec_step <= 8 and not self.exec_part.isInterupted()): 
                 rospy.loginfo("\n\n[ExecutePart]: STEP 8 \n")
 
@@ -226,9 +227,34 @@ class ExecBin:
 
                 falty = len(faulty_sensor_msg) > 0
                 if falty:
-                    rospy.loginfo("[ExecutePart][STEP8] - Falty part detected")
 
-                xec_step =+1 #STEP  - DONE
+                    rospy.loginfo("[ExecutePart][STEP8] - Falty part detected")
+                    rospy.sleep(5) #TODO REMOVE
+                    falty_pose = faulty_sensor_msg[0].pose
+                    #TODO falty_pose SENSOR to WORLD
+                    part_world_position = [falty_pose.position.x, falty_pose.position.y, falty_pose.position.z]
+                    part_world_orientation = [falty_pose.orientation.x, falty_pose.orientation.y, falty_pose.orientation.z]
+
+                    solver = arm_actions.SolverType.AGV1 if tray_id == 1 else arm_actions.SolverType.AGV2
+                    
+                    arm_actions.moveToolTip(0.3, 0.1, 1.4)
+                    
+                    success = self.exec_part.move_wait_above_part(part_world_position, part_world_orientation, part_type, solver, 0.1)
+
+                    success = arm_actions.go_down_until_get_piece(world_position=part_world_position, 
+                                                                world_orientation=part_world_orientation, 
+                                                                part_type=part_type, 
+                                                                time=3, ignore_height=False, 
+                                                                distance=0.01, solver_type=arm_actions.SolverType.AGV1)
+                    
+                    arm_actions.moveToolTip(0.3, 0.1, 1.4)
+
+                    arm_actions.go_to_discard_from_agv1(1)
+
+                    self.part_plan.part.reset()
+                    return False
+                else:
+                    exec_step =+1 #STEP  - DONE
                 
 
 
