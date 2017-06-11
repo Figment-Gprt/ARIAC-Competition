@@ -37,7 +37,8 @@ class ExecBin:
                 desired_part_pose = self.part_plan.part.desired_pose
                 exec_step =+1 #STEP 0 - DONE
                 to_flip = self.part_plan.to_flip
-                rospy.loginfo("\n\n[ExecutePart]: STEP 0 : Part must be FLIPPED\n\n\n\n")
+                if to_flip:
+                    rospy.loginfo("\n\n[ExecutePart]: STEP 0 : Part must be FLIPPED\n\n\n\n")
 
 ###################       STEP 1       ##########################################
 
@@ -304,9 +305,10 @@ class ExecutePart:
             rospy.loginfo("[ExecutePart]: part: "+ str(part_id))
             # getting bin id from the part
             for k, v in BINS_CAMERA.items():
-                if v in camera_id:
-                    part_origin = k
-                    break
+                for cams in v:
+                    if cams in camera_id:
+                        part_origin = k
+                        break
             # getting position and orientation from the part
             transforms_list = global_vars.tf_manager.get_transform_list(part_id, 'world')
             return transform.transform_list_to_world(transforms_list)
