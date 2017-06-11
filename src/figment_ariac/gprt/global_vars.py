@@ -23,6 +23,8 @@ def init():
 	CheckTaskIsFinished = False
 	partPicked = False
 	current_joint_state = None
+	faulty_sensor1 = []
+	faulty_sensor2 = []
 
 	agv1_status = 'unknown'
 	agv2_status = 'unknown'

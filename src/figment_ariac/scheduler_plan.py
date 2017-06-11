@@ -35,8 +35,14 @@ def main():
     competition.connect_callbacks(comp_class)
 
     rospy.loginfo('\n\nInitial competition state: {} \n\n'.format(comp_class.current_comp_state))
-    rospy.loginfo("Setup complete. Sleeping before starting (services and callbacks)")
-    rospy.sleep(5.0)
+
+    rospy.loginfo("Setup complete. Sleeping a bit (services, callbacks, states)")
+    rospy.sleep(3.0)
+    #TODO Check if we really need to send to initial pos
+    #only after and order is received.
+    arm_actions.go_to_initial_position()
+    rospy.loginfo("Set initial position before starting")
+    rospy.sleep(2.0)
     competition.start_competition()
 
 
@@ -47,12 +53,8 @@ def main():
         rospy.loginfo_throttle(5, "No orders yet...")        
         rospy.sleep(0.1)
 
-    #TODO Check if we really need to send to initial pos
-    #only after and order is received.
-    arm_actions.go_to_initial_position()
 
     rospy.loginfo("\n\nCompetition state after start: " + str(comp_class.current_comp_state))
- 
 
     while "go" not in comp_class.current_comp_state:
         rospy.loginfo("\nCompetition still not in go state. Curr state: " + str(comp_class.current_comp_state))

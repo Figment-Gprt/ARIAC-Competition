@@ -42,8 +42,6 @@ class Competition:
         # store the actions which the robot will execute
         self.actions_tray1 = []
         self.actions_tray2 = []
-        self.faulty_sensor1 = []
-        self.faulty_sensor2 = []
         # True when activated
         self.beltState = True
         self.scheduler = scheduler.Scheduler(self)
@@ -85,11 +83,11 @@ class Competition:
 
     def quality_control_sensor_1_callback(self, msg):
         pose = msg.pose  # camera position, DO NOT KNOW IF IT IS NEEDED
-        self.faulty_sensor1 = msg.models
+        global_vars.faulty_sensor1 = msg.models
 
     def quality_control_sensor_2_callback(self, msg):
         pose = msg.pose  # camera position, DO NOT KNOW IF IT IS NEEDED
-        self.faulty_sensor2 = msg.models
+        global_vars.faulty_sensor2 = msg.models
 
 
 def camera_callback(msg, objs):
