@@ -129,14 +129,14 @@ def go_down_until_get_piece(world_position, world_orientation, part_type,
         rospy.loginfo(
         "[go_down_until_get_piece] SolverType.AGV1" )
         angles = depositOnTray1(
-            position, tfOri, part_type, ignore_height=True)
+            position, tfOri, part_type, ignore_height=ignore_height)
         angles2= depositOnTray1(
-            position2, tfOri, part_type, ignore_height=True)        
+            position2, tfOri, part_type, ignore_height=ignore_height)        
     elif solver_type == SolverType.AGV2:
         angles = depositOnTray2(
-            position, tfOri, part_type, ignore_height=True)
+            position, tfOri, part_type, ignore_height=ignore_height)
         angles2 = depositOnTray2(
-            position2, tfOri, part_type, ignore_height=True)        
+            position2, tfOri, part_type, ignore_height=ignore_height)        
 
 
 
@@ -147,7 +147,7 @@ def go_down_until_get_piece(world_position, world_orientation, part_type,
         "[go_down_until_get_piece] send_gripping_cmd Failure")
         return False
 
-    success = gripper_actions.wait_for_gripper(toGrip=True, max_wait=5, inc_sleep=0.01)
+    success = gripper_actions.wait_for_gripper(toGrip=True, max_wait=time, inc_sleep=0.01)
     if not success:
         rospy.logerr(
         "[go_down_until_get_piece] wait_for_gripper Failure")
@@ -294,4 +294,50 @@ def moveToolTip(incrementZ=0.3, incrementX=0.1, timeToGoal=0.2):
 
 
             
-        
+def moveToolTipZY(incrementZ=0.3, incrementY=0.1, timeToGoal=0.2): 
+        posUpperArm, angleUpperArm = utils.getUpperArmPose()
+        posVacum, angleVacum = utils.getVacuumGripperPos()
+        posFore, angleFore = utils.getForeArmPos()
+
+        workingPos = deepcopy(posVacum)
+        workingPos[2] += incrementZ
+        workingPos[01] += incrementY
+
+
+        shoulderBTriangle = utils.computeYZDistance(posUpperArm, workingPos)
+
+        yDistance = abs(utils.computeYDistance(posUpperArm, workingPos))
+        zDistance = abs(utils.computeZDistance(posUpperArm, workingPos))
+
+
+        wristBTriangle = utils.computeYZDistance(workingPos, posVacum)
+
+        workingIsAbove = utils.computeZDistance(posUpperArm, workingPos) < 0
+
+        a1, b1, c1, A1, B1, C1 = solve(
+            a=shoulderBTriangle, b=FORE_ARM, c=UP_ARM)
+
+        a2, b2, c2, A2, B2, C2 = solve(
+            a=yDistance, b=zDistance, c=shoulderBTriangle)
+
+        elbow_joint = math.pi - A1
+
+        shoulder_lift_joint = math.pi / 2 - A2 -B1
+        wrist_1_joint =  math.pi - (C1 + B2) + math.pi/2
+     
+        angles = []
+        angles.extend(global_vars.current_joint_state.position)
+        angles[0] = elbow_joint
+        angles[2] = shoulder_lift_joint
+        angles[4] = wrist_1_joint
+
+        rospy.sleep(1)
+
+        # msg = utils.createJointTrajectory(angles, time=1)
+        # joint_trajectory_publisher.publish(msg)
+        set_arm_joint_values(angles, timeToGoal)
+
+        check_arm_joint_values_published(
+            list_of_joint_values=angles)
+
+

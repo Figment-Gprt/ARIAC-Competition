@@ -51,7 +51,6 @@ class ExecBin:
                     camera_id, part_id = global_vars.tf_manager.find_part_name(part_type)
                     # getting part id without the camera id
                     part_name = part_id[part_id.find(part_type):-6]
-                    print "\n\n\n\n\n\n\n\n      " + part_name
                     
                     if(len(camera_id) == 0 or len(part_id) == 0):
                         rospy.loginfo(
@@ -174,13 +173,16 @@ class ExecBin:
                     rospy.loginfo("[ExecutePart]: step7 failed. Reseting")
                     # waiting tf_manager update
                     rospy.sleep(1)
-                    camera_id, part_id = global_vars.tf_manager.find_part_name(part_name=part_name, 
-                                                                    dad="logical_camera_agv_1_frame")
-                    r = self.exec_part.find_part_any_agvs(camera_id, part_id, part_type)
+                    if(self.part_plan.dest_tray_id == 1):
+                        camera_name = AGVS_CAMERA["agv1"]
+                        solver = arm_actions.SolverType.AGV1
+                    elif(self.part_plan.dest_tray_id == 2): 
+                        camera_name = AGVS_CAMERA["agv2"]
+                        solver = arm_actions.SolverType.AGV2
+
+                    camera_id, part_id = global_vars.tf_manager.find_part_name(part_name=part_name, dad=camera_name)
+                    r = self.exec_part.find_part_any_agvs(part_id)
                     
-                    #print ("\n\n\n\n " + str(part_world_position) + " \n\n\n\n\n")
-                    #print ("\n\n\n\n " + str(part_world_orientation) + " \n\n\n\n\n")
-                    #print ("\n\n\n\n " + str(part_type) + " \n\n\n\n\n") 
                     
                     part_world_position, part_world_orientation = r
 
@@ -189,20 +191,19 @@ class ExecBin:
                     print ("\n\n\n\n " + str(part_world_orientation) + " \n\n\n\n\n")
                     print ("\n\n\n\n " + str(part_type) + " \n\n\n\n\n") 
 
-                    solver = arm_actions.SolverType.AGV1 if tray_id == 1 else arm_actions.SolverType.AGV2
+                    arm_actions.moveToolTipZY(0.3, -0.1, 1.4)
                     
-                    # arm_actions.moveToolTip(0.3, 0.1, 1.4)
-                    
-                    success = self.exec_part.move_wait_above_part(part_world_position, part_world_orientation, part_type, solver, 0.1)
+                    success = self.exec_part.move_wait_above_part(part_world_position, part_world_orientation, part_type, solver, 0.2)
 
+                    
                     if success:
                         success = arm_actions.go_down_until_get_piece(world_position=part_world_position, 
                                                                 world_orientation=part_world_orientation, 
                                                                 part_type=part_type, 
-                                                                time=3, ignore_height=False, 
-                                                                distance=0.01, solver_type=arm_actions.SolverType.AGV1)
+                                                                time=5, ignore_height=False, 
+                                                                distance=0.01, solver_type=solver)
                     
-                    # arm_actions.moveToolTip(0.3, 0.1, 1.4)
+                    arm_actions.moveToolTipZY(0.3, -0.1, 1.4)
 
                     rospy.logerr("........................................................................")
                     if success :
@@ -214,7 +215,7 @@ class ExecBin:
                         rospy.logerr("[ExecutePart]: step7 failed. We do not know what to do yet")
                         exec_step =+1 #STEP  - DONE
                 else:                    
-
+                    arm_actions.moveToolTipZY(0.3, -0.1, 1.4)
                     exec_step =+1 #STEP  - DONE
 
 ###################       STEP 8       ##########################################  
@@ -227,10 +228,12 @@ class ExecBin:
                     faulty_sensor_msg = global_vars.faulty_sensor1
                     sensor_name = "quality_control_sensor_1_frame"
                     angles_discard = STATIC_POSITIONS["disBelAgv1"]
+                    solver = arm_actions.SolverType.AGV1
                 elif(self.part_plan.dest_tray_id == 2): 
                     faulty_sensor_msg = global_vars.faulty_sensor1    
                     sensor_name = "quality_control_sensor_2_frame"
                     angles_discard = STATIC_POSITIONS["disBelAgv2"]
+                    solver = arm_actions.SolverType.AGV2
                 else:
                     rospy.logerr("[ExecutePart]: step8 failed. We do not know what to do yet")
                     self.part_plan.part.reset()
@@ -247,7 +250,6 @@ class ExecBin:
                     transforms_list = global_vars.tf_manager.get_transform_list(faulty_party_id, 'world')
                     part_world_position, part_world_orientation = transform.transform_list_to_world(transforms_list)
 
-                    solver = arm_actions.SolverType.AGV1 if tray_id == 1 else arm_actions.SolverType.AGV2
                     rospy.loginfo("[ExecutePart][STEP8] - Move ToolTip Up")                    
                     arm_actions.moveToolTip(0.3, 0.1, 1.4)
                     rospy.sleep(5) #TODO REMOVE
@@ -261,7 +263,7 @@ class ExecBin:
                                                                 world_orientation=part_world_orientation, 
                                                                 part_type=part_type, 
                                                                 time=3, ignore_height=False, 
-                                                                distance=0.01, solver_type=arm_actions.SolverType.AGV1)
+                                                                distance=0.01, solver_type=solver)
                     rospy.sleep(5) #TODO REMOVE
 
 
@@ -395,18 +397,13 @@ class ExecutePart:
             transforms_list = global_vars.tf_manager.get_transform_list(part_id, 'world')
             return transform.transform_list_to_world(transforms_list)
 
-    def find_part_any_agvs(self, camera_id, part_id, part_type):
-        if len(camera_id) > 0:
-            rospy.loginfo("[ExecutePart]: camera_id: "+ str(camera_id))
-            rospy.loginfo("[ExecutePart]: part: "+ str(part_id))
-            # getting bin id from the part
-            for k, v in AGVS_CAMERA.items():
-                if v in camera_id:
-                    part_origin = k
-                    break
-            # getting position and orientation from the part
-            transforms_list = global_vars.tf_manager.get_transform_list(part_id, 'world')
-            return transform.transform_list_to_world(transforms_list)
+    def find_part_any_agvs(self, part_id):
+        rospy.loginfo("[ExecutePart]: part: "+ str(part_id))
+        # getting bin id from the part
+        
+        # getting position and orientation from the part
+        transforms_list = global_vars.tf_manager.get_transform_list(part_id, 'world')
+        return transform.transform_list_to_world(transforms_list)
 
     def move_to_tray(self, tray_id, force_check_piece=True, force_grp_sts=True, time=2):
         tray_name = "agv" + str(tray_id)
