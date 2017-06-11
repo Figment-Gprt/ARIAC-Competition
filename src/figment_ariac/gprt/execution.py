@@ -162,10 +162,7 @@ class ExecBin:
 #STEP 7 - Put Part at tray              
             if(not jump and exec_step <= 7 and not self.exec_part.isInterupted()): 
                 rospy.loginfo("\n\n[ExecutePart]: STEP 7 \n")
-                #DEBUG LACK OF PARTS
-                # gripper_actions.send_gripping_cmd(toGrip=False)
-                # gripper_actions.wait_for_gripper(toGrip=False, max_wait=5, inc_sleep=0.01)
-                # rospy.sleep(0.5)
+                
                 success = self.exec_part.deposit_at_tray(desired_part_pose=desired_part_pose, part_type=part_type, tray_id=tray_id, force_check_piece=True)
 
                 if not success:
@@ -239,8 +236,7 @@ class ExecBin:
                 if falty:
 
                     rospy.loginfo("[ExecutePart][STEP8] - Falty part detected")
-                    # rospy.sleep(5) #TODO REMOVE
-
+                    
                     sensor_id, faulty_party_id = global_vars.tf_manager.find_part_name(part_type, sensor_name)
 
                     transforms_list = global_vars.tf_manager.get_transform_list(faulty_party_id, 'world')
@@ -255,16 +251,14 @@ class ExecBin:
                                             part_type=part_type, solver_type=solver, 
                                             a_bit_above_value=0.015, 
                                             time_to_execute_action=0.1)
-                    # rospy.sleep(5) #TODO REMOVE
-
+                    
                     rospy.loginfo("[ExecutePart][STEP8] - Go down untill get")
                     success = arm_actions.go_down_until_get_piece(world_position=part_world_position, 
                                                                 world_orientation=part_world_orientation, 
                                                                 part_type=part_type, 
                                                                 time=3, ignore_height=False, 
                                                                 distance=0.01, solver_type=arm_actions.SolverType.AGV1)
-                    # rospy.sleep(5) #TODO REMOVE
-
+                    
 
                     rospy.loginfo("[ExecutePart][STEP8] - Move ToolTip Up")  
 
@@ -273,8 +267,7 @@ class ExecBin:
                                                                 part_type=part_type, solver_type=solver, 
                                                                 a_bit_above_value=0.3, 
                                                                 time_to_execute_action=0.3)
-                    # rospy.sleep(5) #TODO REMOVE
-
+                    
                     
                     rospy.loginfo("[ExecutePart][STEP8] - Go to discard pos")  
                     arm_actions.set_arm_joint_values(list_of_joint_values=angles_discard,
@@ -498,50 +491,37 @@ class ExecutePart:
     def flip_part_bin(self, part_type):
 
         arm_actions.moveToolTip(0.3, 0.1, 1.4)
-        # rospy.loginfo("\n\nSTEP 5 - PASSO 1 \n")
         
         arm_actions.turnWrist(0.01)
-        # rospy.loginfo("\n\nSTEP 5 - PASSO 2 \n")
         
         arm_actions.MoveSideWays(0.022)
-        # rospy.loginfo("\n\nSTEP 5 - PASSO 3 \n")
-        
         
         arm_actions.moveToolTip(-0.275, 0.13, 0.5)
-        # rospy.loginfo("\n\nSTEP 5 - PASSO 4 \n")
-        # rospy.sleep(30)
-
-        rospy.sleep(0.3)
 
         gripper_actions.send_gripping_cmd(toGrip=False)
         
-        arm_actions.MoveSideWays(0.1)
-        # rospy.loginfo("\n\nSTEP 5 - PASSO 5 \n")
+        arm_actions.MoveSideWays(0.05)
         
         gripper_actions.wait_for_gripper(toGrip=False, max_wait=5, inc_sleep=0.01)
-        # rospy.loginfo("\n\nSTEP 5 - PASSO 6 \n")
         
         arm_actions.turnWrist(-1.5707963268)
-        # rospy.loginfo("\n\nSTEP 5 - PASSO 7 \n")
-
+        
         # Move ToolTip UP
         arm_actions.moveToolTip(0.4, 0, 0.3)
-        # rospy.loginfo("\n\nSTEP 5 - PASSO 8 \n")
         
         #Move a bit to the other side
         arm_actions.MoveSideWays(-0.4)
-        # rospy.loginfo("\n\nSTEP 5 - PASSO 9 \n")
-        rospy.sleep(0.3)
+        
+        rospy.sleep(0.1)
         
         # Move ToolTip Down
         arm_actions.moveToolTip(-0.01, 0.23, 0.2)
-        # rospy.loginfo("\n\nSTEP 5 - PASSO 10 \n")
+        
         rospy.sleep(0.7)
         
          # Move a bit to the other side
         arm_actions.MoveSideWays(0.3)
-        # rospy.loginfo("\n\nSTEP 5 - Aqui ok? \n")
-
+        
         rospy.sleep(0.7)
 
         camera_id, part_id = global_vars.tf_manager.find_part_name(part_type)

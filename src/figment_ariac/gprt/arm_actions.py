@@ -237,8 +237,6 @@ def MoveSideWays(move_side):
         angles.extend(position)
         angles[1] = angles[1] + move_side 
         
-        # msg = utils.createJointTrajectory(angles, time=1)
-        # joint_trajectory_publisher.publish(msg)
         set_arm_joint_values(angles, 1.2)
 
         check_arm_joint_values_published(
@@ -285,8 +283,6 @@ def moveToolTip(incrementZ=0.3, incrementX=0.1, timeToGoal=0.2):
 
         rospy.sleep(1)
 
-        # msg = utils.createJointTrajectory(angles, time=1)
-        # joint_trajectory_publisher.publish(msg)
         set_arm_joint_values(angles, timeToGoal)
 
         check_arm_joint_values_published(
