@@ -37,7 +37,6 @@ class ExecBelt:
                 exec_step =+1 #STEP 0 - DONE
 
 ###################       STEP 1       ##########################################
-#CHECAR SE A PECA ESTA DISPONIVEL NO BELT
             if(exec_step <= 1 and not self.exec_part.isInterupted()): #STEP 1 - Check Belt
 
                 if part_origin == PickPlaces.BELT.value:
@@ -50,6 +49,7 @@ class ExecBelt:
                         self.part_plan.part.reset()
                         return False
                     r = self.exec_part.find_part_any_bin(camera_id, part_id, part_type)
+                    part_world_tf_time = global_vars.tf_manager.get_piece_tf_time([camera_id][part_id]["secs"])
                     if(r is None):
                         rospy.loginfo(
                             "[ExecuteBeltPart]:Failed. No available part {} found".format(part_type))
@@ -360,10 +360,9 @@ class ExecutePart:
             else:
                 return True
 
-    def move_towards_piece_on_belt(part_world_position, part_world_orientation, part_type):
+    def move_towards_piece_on_belt(part_world_position, part_world_orientation):
         tfPos = part_world_position
         tfOri = part_world_orientation
-        part_type
 
         tfTimer = self.positionAct.calTime
         tfPos = self.positionAct.calPos

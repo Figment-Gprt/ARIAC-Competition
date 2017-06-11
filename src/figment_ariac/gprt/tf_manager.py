@@ -27,6 +27,9 @@ class TfManager:
     def add_part_id_to_bl(self, part_id):
         self.part_id_black_list.append(part_id)
 
+    def get_piece_tf_time(father, child):
+        return self.transforms_dynamic[father][child]["secs"]
+
     def find_part_name(self, part_name, dad=None):
         father = ""
         child = ""
