@@ -131,59 +131,59 @@ class ExecBin:
 
                 
                 elif(part_type == "pulley_part"):
-                	
-                	arm_actions.moveToolTip(0.3, 0.1, 1.4)
-                	rospy.loginfo("\n\nSTEP 5 - PASSO 1 \n")
-                	
-                	arm_actions.turnWrist(0.01)
-                	rospy.loginfo("\n\nSTEP 5 - PASSO 2 \n")
-                	
-                	arm_actions.MoveSideWays(0.022)
-                	rospy.loginfo("\n\nSTEP 5 - PASSO 3 \n")
-                	
-                	# Move ToolTip close to goal really fast
-                	arm_actions.moveToolTip(-0.285, 0.13, 2)
-                	rospy.loginfo("\n\nSTEP 5 - PASSO 4 \n")
-                	# rospy.sleep(30)
 
-                	rospy.sleep(0.7)
+                    arm_actions.moveToolTip(0.3, 0.1, 1.4)
+                    rospy.loginfo("\n\nSTEP 5 - PASSO 1 \n")
+                    
+                    arm_actions.turnWrist(0.01)
+                    rospy.loginfo("\n\nSTEP 5 - PASSO 2 \n")
+                    
+                    arm_actions.MoveSideWays(0.022)
+                    rospy.loginfo("\n\nSTEP 5 - PASSO 3 \n")
+                    
+                    # Move ToolTip close to goal really fast
+                    arm_actions.moveToolTip(-0.285, 0.13, 2)
+                    rospy.loginfo("\n\nSTEP 5 - PASSO 4 \n")
+                    # rospy.sleep(30)
 
-                	gripper_actions.send_gripping_cmd(toGrip=False)
-                	
-                	arm_actions.MoveSideWays(0.4)
-                	rospy.loginfo("\n\nSTEP 5 - PASSO 5 \n")
-                	rospy.sleep(1)
-                	
+                    rospy.sleep(0.7)
 
-                	gripper_actions.wait_for_gripper(toGrip=False, max_wait=5, inc_sleep=0.01)
-                	rospy.loginfo("\n\nSTEP 5 - PASSO 6 \n")
-                	rospy.sleep(1)
-                	
-                	arm_actions.turnWrist(-1.5707963268)
-                	rospy.loginfo("\n\nSTEP 5 - PASSO 7 \n")
-                	rospy.sleep(1)
+                    gripper_actions.send_gripping_cmd(toGrip=False)
+                    
+                    arm_actions.MoveSideWays(0.4)
+                    rospy.loginfo("\n\nSTEP 5 - PASSO 5 \n")
+                    rospy.sleep(1)
+                    
 
-                	 # Move ToolTip UP
-                	arm_actions.moveToolTip(0.4, 0, 0.3)
-                	rospy.loginfo("\n\nSTEP 5 - PASSO 8 \n")
-                	rospy.sleep(1)
-                	
-                	#Move a bit to the other side
-                	arm_actions.MoveSideWays(-0.3)
-                	rospy.loginfo("\n\nSTEP 5 - PASSO 9 \n")
-                	rospy.sleep(1)
-                	
-                	# Move ToolTip Down
-                	arm_actions.moveToolTip(-0.01, 0.23, 0.2)
-                	rospy.loginfo("\n\nSTEP 5 - PASSO 10 \n")
-                	rospy.sleep(1)
-                	
-                	 # Move a bit to the other side
-                	arm_actions.MoveSideWays(0.3)
-                	rospy.loginfo("\n\nSTEP 5 - Aqui ok? \n")
-                	rospy.sleep(1)
+                    gripper_actions.wait_for_gripper(toGrip=False, max_wait=5, inc_sleep=0.01)
+                    rospy.loginfo("\n\nSTEP 5 - PASSO 6 \n")
+                    rospy.sleep(1)
+                    
+                    arm_actions.turnWrist(-1.5707963268)
+                    rospy.loginfo("\n\nSTEP 5 - PASSO 7 \n")
+                    rospy.sleep(1)
 
-                	rospy.sleep(0.4)
+                     # Move ToolTip UP
+                    arm_actions.moveToolTip(0.4, 0, 0.3)
+                    rospy.loginfo("\n\nSTEP 5 - PASSO 8 \n")
+                    rospy.sleep(1)
+                    
+                    #Move a bit to the other side
+                    arm_actions.MoveSideWays(-0.3)
+                    rospy.loginfo("\n\nSTEP 5 - PASSO 9 \n")
+                    rospy.sleep(1)
+                    
+                    # Move ToolTip Down
+                    arm_actions.moveToolTip(-0.01, 0.23, 0.2)
+                    rospy.loginfo("\n\nSTEP 5 - PASSO 10 \n")
+                    rospy.sleep(1)
+                    
+                     # Move a bit to the other side
+                    arm_actions.MoveSideWays(0.3)
+                    rospy.loginfo("\n\nSTEP 5 - Aqui ok? \n")
+                    rospy.sleep(1)
+
+                    rospy.sleep(0.4)
 
                     camera_id, part_id = global_vars.tf_manager.find_part_name(part_type)
                     if(camera_id is None or part_id is None):
@@ -201,8 +201,8 @@ class ExecBin:
 
                     rospy.sleep(1)
 
-                	
-                		
+                    
+                        
                 if not success:
                     rospy.loginfo("[ExecutePart]: step failed. Reseting")
                     self.part_plan.part.reset()
@@ -501,8 +501,8 @@ def send_agv(kit, tray_id):
                   " to : " + agvServiceName)
     rospy.wait_for_service(agvServiceName)
     try:
-    	send_agv = rospy.ServiceProxy(
-    		agvServiceName, AGVControl)
+        send_agv = rospy.ServiceProxy(
+            agvServiceName, AGVControl)
         success = send_agv(kit.kit_type)
         rospy.sleep(1)
         return success
