@@ -217,7 +217,7 @@ class ExecBin:
 
                 if(self.part_plan.dest_tray_id == 1):
                     faulty_sensor_msg = global_vars.faulty_sensor1
-                elif(self.part_plan.dest_tray_id == 2) 
+                elif(self.part_plan.dest_tray_id == 2): 
                     faulty_sensor_msg = global_vars.faulty_sensor1    
                 else:
                     rospy.logerr("[ExecutePart]: step8 failed. We do not know what to do yet")
