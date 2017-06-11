@@ -186,7 +186,7 @@ class ExecBin:
                     success = arm_actions.go_down_until_get_piece(world_position=part_world_position, 
                                                                 world_orientation=part_world_orientation, 
                                                                 part_type=part_type, 
-                                                                time=3, ignoreHeight=False, 
+                                                                time=3, ignore_height=False, 
                                                                 distance=0.01, solver_type=arm_actions.SolverType.AGV1)
                     #TODO MOVE UP A BIT
 
