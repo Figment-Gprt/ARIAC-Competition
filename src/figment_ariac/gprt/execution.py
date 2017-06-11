@@ -167,7 +167,10 @@ class ExecBin:
 
                 if not success:
                     rospy.loginfo("[ExecutePart]: step7 failed. Reseting")
-                                        
+                    #TODO get only the part type that dropped
+                    #A way to do this is to find only the part_type 
+                    #with a position for a PartPlan/part that was not marked as Done yet
+                    #pass the parent_kit to find_part_name
                     camera_id, part_id = global_vars.tf_manager.find_part_name(part_name=part_type, 
                                                                     dad="logical_camera_agv_1_frame")
                     r = self.exec_part.find_part_any_agvs(camera_id, part_id, part_type)
