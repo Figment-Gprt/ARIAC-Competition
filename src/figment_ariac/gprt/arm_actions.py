@@ -125,18 +125,18 @@ def go_down_until_get_piece(world_position, world_orientation, part_type,
         angles2 = solverBin(
             position2, tfOri, part_type, ignore_height)
 
-    elif solver_type == SolverType.AGV1:  #TODO implement ignore_height
+    elif solver_type == SolverType.AGV1:  
         rospy.loginfo(
         "[go_down_until_get_piece] SolverType.AGV1" )
         angles = depositOnTray1(
-            position, tfOri, part_type, ignore_height)
+            position, tfOri, part_type, ignore_height=True)
         angles2= depositOnTray1(
-            position2, tfOri, part_type, ignore_height)        
+            position2, tfOri, part_type, ignore_height=True)        
     elif solver_type == SolverType.AGV2:
         angles = depositOnTray2(
-            position, tfOri, part_type, ignore_height)
+            position, tfOri, part_type, ignore_height=True)
         angles2 = depositOnTray2(
-            position2, tfOri, part_type, ignore_height)        
+            position2, tfOri, part_type, ignore_height=True)        
 
 
 
