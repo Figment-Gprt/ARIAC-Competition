@@ -6,6 +6,7 @@ import transform
 
 from utils import *
 from constants import *
+from ik_solution import solverBelt
 from trajectory_msgs.msg import JointTrajectory
 import gripper_actions
 
@@ -42,14 +43,15 @@ class ExecBelt:
                 if part_origin == PickPlaces.BELT.value:
                     rospy.loginfo("\n\n[ExecuteBeltPart]: STEP 1 \n")
                     # step 0 - get available pose for a part on any bin
-                    camera_id, part_id = global_vars.tf_manager.find_part_name(part_type, dad=BIN_CAMERA["belt"])
+                    camera_name = BIN_CAMERA["belt"] + "_frame"
+                    camera_id, part_id = global_vars.tf_manager.find_part_name(part_type, dad=camera_name)
                     if(camera_id is None or part_id is None):
                         rospy.loginfo(
                             "[ExecuteBeltPart]:Failed. No available part {} found".format(part_type))
                         self.part_plan.part.reset()
                         return False
                     r = self.exec_part.find_part_any_bin(camera_id, part_id, part_type)
-                    part_world_tf_time = global_vars.tf_manager.get_piece_tf_time([camera_id][part_id]["secs"])
+                    part_world_tf_time = global_vars.tf_manager.get_piece_tf_time(camera_id, part_id)
                     if(r is None):
                         rospy.loginfo(
                             "[ExecuteBeltPart]:Failed. No available part {} found".format(part_type))
@@ -77,45 +79,87 @@ class ExecBelt:
 
             if(exec_step <= 3 and not self.exec_part.isInterupted()): #STEP 3 - follow the part on the belt
 
-                rospy.loginfo("\n\n[ExecutePart]: STEP 3 \n")
+                rospy.loginfo("\n\n[ExecuteBeltPart]: STEP 3 \n")
                 max_attempt = 3
                 attempt = 0
                 success = False
                 while(attempt < max_attempt and not success):            
                     success = self.exec_part.move_towards_piece_on_belt(part_world_position, 
                                                         part_world_orientation, 
-                                                        part_type)
+                                                        part_world_tf_time, part_type)
                     if not success: 
                         attempt +=1           
-                        rospy.loginfo("[ExecutePart]: step3 failed. attempt#" + str(attempt))
+                        rospy.loginfo("[ExecuteBeltPart]: step3 failed. attempt#" + str(attempt))
 
                 if not success:                 
-                    rospy.loginfo("[ExecutePart]: step3 failed completly" + str(attempt))
+                    rospy.loginfo("[ExecuteBeltPart]: step3 failed completly" + str(attempt))
                     global_vars.tf_manager.add_part_id_to_bl(part_id)
                     self.part_plan.part.reset()
                     return False
 
                 exec_step =+1 #STEP 3 - DONE
 
+###################       STEP 4       ##########################################
 
+            if(exec_step <= 4 and not self.exec_part.isInterupted()): #STEP 4 - Move back to initial position with the piece                  
 
-
-
-###################       STEP 4       ########################################## 
-
-            if(exec_step <= 4 and not self.exec_part.isInterupted()): #STEP 4 - move to position a bit above the part           
-
-                rospy.loginfo("\n\n[ExecutePart]: STEP 4 \n")
-                # 3 - go down until get the part
-                success = arm_actions.go_down_until_get_piece(part_world_position, 
-                                                    part_world_orientation, 
-                                                    part_type)
+                rospy.loginfo("\n\n[ExecuteBeltPart]: STEP 4 \n")
+                success = self.exec_part.move_wait_belt(part_world_position)
                 if not success:
-                    rospy.loginfo("[ExecutePart]: step4 failed. Reseting")
+                    rospy.loginfo("[ExecuteBeltPart]: step failed. Reseting")
                     self.part_plan.part.reset()
                     return False
 
-                exec_step =+1 #STEP 4 - DONE
+                exec_step =+1 #STEP  - DONE
+
+###################       STEP 5       ##########################################                
+            if(exec_step <= 5 and not self.exec_part.isInterupted()): #STEP 5 - Move To TRAY
+                rospy.loginfo("\n\n[ExecuteBeltPart]: STEP 5 \n")
+                success = self.exec_part.move_to_tray(tray_id)
+                # success = self.exec_part.move_wait_front_part(part_world_position)
+                if not success:
+                    rospy.loginfo("[ExecuteBeltPart]: step6 failed. Reseting")
+                    self.part_plan.part.reset()
+                    return False
+
+            if(exec_step <= 4 and not self.exec_part.isInterupted()): #STEP 6 - Temporary Debug
+                exec_step =+1 #STEP  - DONE
+
+###################       STEP 6       ##########################################                
+            if(exec_step <= 6 and not self.exec_part.isInterupted()): #STEP 6 - Put Part at tray
+                rospy.loginfo("\n\n[ExecuteBeltPart]: STEP 6 \n")
+                #DEBUG LACK OF PARTS
+                # gripper_actions.send_gripping_cmd(toGrip=False)
+                # gripper_actions.wait_for_gripper(toGrip=False, max_wait=5, inc_sleep=0.01)
+                # rospy.sleep(0.5)
+                success = self.exec_part.deposit_at_tray(desired_part_pose=desired_part_pose, part_type=part_type, tray_id=tray_id, force_check_piece=True)
+
+                if not success:
+                    rospy.loginfo("[ExecuteBeltPart]: step6 failed. Reseting")
+                    self.part_plan.part.reset()
+                    return False
+
+                exec_step =+1 #STEP  - DONE
+
+
+###################       STEP 7       ##########################################                
+            if(exec_step <= 7 and not self.exec_part.isInterupted()): #STEP 7 - Move To TRAY
+                rospy.loginfo("\n\n[ExecuteBeltPart]: STEP 7 \n")
+                
+                success = self.exec_part.move_to_tray(tray_id, force_check_piece=False)
+                # success = self.exec_part.move_wait_front_part(part_world_position)
+                if not success:
+                    rospy.loginfo("[ExecuteBeltPart]: step7 failed. Reseting")
+                    self.part_plan.part.reset()
+                    return False
+
+                exec_step =+1 #STEP  - DONE
+
+
+
+                done = True
+
+        return done
 
 class ExecBin:
 
@@ -360,77 +404,65 @@ class ExecutePart:
             else:
                 return True
 
-    def move_towards_piece_on_belt(part_world_position, part_world_orientation):
-        tfPos = part_world_position
-        tfOri = part_world_orientation
+    def move_towards_piece_on_belt(self, part_world_position, part_world_orientation,
+                                    part_world_tf_time, part_type):
 
-        tfTimer = self.positionAct.calTime
-        tfPos = self.positionAct.calPos
-        tfOri = self.positionAct.calOri
+        camera_pos = global_vars.tf_manager.get_transform('world', "logical_camera_belt_1_frame").translation
 
-        camera_pos = global_vars.tf_manager.get_transform('world', "logical_camera_5_frame").translation
-
-        pos_robot = list(self.gprt.current_joint_state.position)
-        self.angles = solverBelt(tfPos, tfOri, self.object_type)
+        pos_robot = list(global_vars.current_joint_state.position)
+        print(part_world_orientation)
+        list_joint_values = solverBelt(part_world_position, part_world_orientation, part_type)
+        initial_position = deepcopy(list_joint_values)
 
         t = rospy.get_time()
-        incr = (t-tfTimer) * 0.2 if tfPos[1] - camera_pos[1] < 0 else 0
+        incr = (t-part_world_tf_time) * 0.2 if part_world_position[1] - camera_pos[1] < 0 else 0
 
-        gripping = ActionCmdGripping(True)
-        gripping.execute_action()
-
-        L_inc = 0.04
-        P_inc = 0.02
-        S_inc = 0.02
-
-        print ('-----------------------------------')
-        print(global_vars.gripper_state.attached)
         found_piece = True
-        robot_move = True
-        robot_move_timer = None
-        counter = rospy.get_time()
-        self.angles[1] -= WRIST_LENGTH
+        list_joint_values[1] -= WRIST_LENGTH
 
-        dist = tfPos[1] - pos_robot[1]
+        dist = part_world_position[1] - pos_robot[1]
+        timer = rospy.get_time()
 
         while not global_vars.gripper_state.attached:
             
-            angles2 = deepcopy(self.angles)
-            curr_pos = list(self.gprt.current_joint_state.position)
-            var = abs(curr_pos[1] - self.angles[1])
-            print (pos_robot[1], self.angles[1], incr, dist,round(abs(self.angles[1] - (pos_robot[1])), 3))#pos_robot[1], incr, round(abs(self.angles[1] - pos_robot[1]), 3))
+            print (pos_robot[1] + WRIST_LENGTH, list_joint_values[1], incr, dist,round(list_joint_values[1] - (pos_robot[1] + WRIST_LENGTH), 3))#pos_robot[1], incr, round(abs(list_joint_values[1] - pos_robot[1]), 3))
            
-            if round(abs(self.angles[1] - pos_robot[1]), 3) <= 0.009 or not found_piece:
+            if (round(list_joint_values[1] - (pos_robot[1] + WRIST_LENGTH), 3) <= 0.009 and round(list_joint_values[1] - (pos_robot[1] + WRIST_LENGTH), 3) > 0) or not found_piece:
                 pos_robot[1] -= 0.02
-                self.angles[1] = pos_robot[1]
-                msg = utils.createJointTrajectory(self.angles, 0.75)
-                self.joint_trajectory_publisher.publish(msg)
-                sendCmdToGripper = ActionCmdGripping(toGrip=True)
-                cmdSent = sendCmdToGripper.execute_action()
-
+                temp = list_joint_values[1]
+                list_joint_values[1] = pos_robot[1] - WRIST_LENGTH
+                # list_joint_values[1] = pos_robot[1] - WRIST_LENGTH
+                arm_actions.set_arm_joint_values(list_joint_values, 1)
+                gripper_actions.send_gripping_cmd(toGrip=True)
+                list_joint_values[1] = temp - 0.02
+                # list_joint_values[1] -= 0.02
                 print ("CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC")
                 found_piece = False
             if found_piece:
-                if self.angles[1] < pos_robot[1] and round(abs(self.angles[1] - (pos_robot[1])), 3) > 0.2:
+                if list_joint_values[1] < pos_robot[1] + WRIST_LENGTH and round(list_joint_values[1] - (pos_robot[1] + WRIST_LENGTH), 3) < 0:
                     print ("AAAAAAAAAAAAAAAAAAAAAAAAAAA")
                     t = rospy.get_time()
-                    incr = ((t-tfTimer) * 0.2) - dist
+                    # dist = (pos_robot[1] + WRIST_LENGTH) - list_joint_values[1]
+                    # pos_robot[1] -= 0.4+dist
+                    incr = ((t-part_world_tf_time) * 0.2) - dist
                     pos_robot[1] -= 0.2+incr
 
-                    msg = utils.createJointTrajectory(pos_robot, 1)
-                    self.joint_trajectory_publisher.publish(msg)
+                    arm_actions.set_arm_joint_values(pos_robot, 1)
                     found_piece = False
 
-
-                elif self.angles[1] > pos_robot[1] and round(abs(self.angles[1] - (pos_robot[1])), 3) > 0.02:
+                elif list_joint_values[1] > pos_robot[1] + WRIST_LENGTH and round(list_joint_values[1] - (pos_robot[1] + WRIST_LENGTH), 3) > 0.02:
                     print ("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB")
-                    msg = utils.createJointTrajectory(pos_robot, 1)
-                    self.joint_trajectory_publisher.publish(msg)
-                self.angles[1] -= P_inc
+                    arm_actions.set_arm_joint_values(pos_robot, 1)
+                list_joint_values[1] -= 0.02
 
+            if rospy.get_time()-timer >= 20:
+                arm_actions.set_arm_joint_values(initial_position, 1)
+                return False
             rospy.sleep(0.1)
         
         rospy.sleep(1)
+
+        return True
 
     def move_wait_front_part(self, part_world_position, 
                         force_check_piece=False, force_grp_sts=True):

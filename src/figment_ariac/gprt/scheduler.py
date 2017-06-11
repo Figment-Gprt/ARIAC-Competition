@@ -233,7 +233,7 @@ class Scheduler:
 
 
         
-        pick_piece = PickPiece(PickPlaces.ANY_BIN, None, None)
+        pick_piece = PickPiece(PickPlaces.BELT, None, None)
         part_plan = PartPlan(part = working_part, 
                         pick_piece=pick_piece, kit_plan = kit_plan)
 
