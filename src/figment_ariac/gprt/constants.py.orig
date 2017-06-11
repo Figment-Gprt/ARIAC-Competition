@@ -8,24 +8,50 @@ STATIC_POSITIONS = {
     "agv1": [2.8797932658, 2.1, -1.308996939, 1.57, 3.1415926536, -1.5707963268, 0],
     "agv2": [2.8797932658, -2.1, -1.308996939, 4.71, 3.1415926536, -1.5707963268, 0],
     "disBelAgv2": [1.76, -2.10, -0.88, 5.91, 3.77, -1.57, 0.0],
-    "disBelAgv1": [1.76, 2.10, -1.26, 0.13, 4.15, -1.57, 0.0],
+<<<<<<< HEAD
+    "disBelAgv1": [1.76, 0.90, -1.26, 0.13, 4.15, -1.57, 0.0],
     "belt": [1.89, 1.19, -1.13, 0, 4.52, -1.57, 0.0],
+=======
+    "disBelAgv1": [1.76, 2.10, -1.26, 0.13, 4.15, -1.57, 0.0],
+    "belt": [1.51, 1.19, -0.7, 0, 3.9, -1.57, 0.0],
+>>>>>>> belt_devel_wip
     "initial_position": [2.51, 0.0, -1.13, 3.14, 3.14, -1.51, 0.0],
     "rest_position" : [2.75, 0.0, -1.308996939, 3.1415926536, 3.27, -1.5707963268, 0.0],
 }
 
-BIN_CAMERA = {
+BINS_CAMERA = {
     "bin5"	: "logical_camera_bin_5_6",
-    "bin6"	: "logical_camera_bin_5_6",
-    "bin7"	: "logical_camera_bin_7_8",
+    "bin6"	: ["logical_camera_bin_5_6", "logical_camera_bin_6_7"],
+    "bin7"	: ["logical_camera_bin_6_7", "logical_camera_bin_7_8"],
     "bin8"	: "logical_camera_bin_7_8",
+<<<<<<< HEAD
+    "bin1"  : "logical_camera_bin_1_2",
+    "bin2"  : ["logical_camera_bin_1_2", "logical_camera_bin_2_3"],
+    "bin3"  : ["logical_camera_bin_2_3", "logical_camera_bin_3_4"],
+    "bin4"  : ["logical_camera_bin_3_4"]
+=======
     "belt"	: "logical_camera_belt_1"
+>>>>>>> belt_devel_wip
 }
 
-AGV_CAMERA = {
-    "agv1": "logical_camera_3_agv1",
-    "agv2": "logical_camera_4_agv2",
+AGVS_CAMERA = {
+    "agv1": "logical_camera_agv_1",
+    "agv2": "logical_camera_agv_2",
 }
+
+BELT_CAMERA = {
+    "belt"  : "logical_camera_belt_1"
+}
+
+ORIGN_CAMERA = {}
+ORIGN_CAMERA.update(BINS_CAMERA)
+ORIGN_CAMERA.update(BELT_CAMERA)
+
+ALL_CAMERA = {}
+ALL_CAMERA.update(ORIGN_CAMERA)
+ALL_CAMERA.update(AGVS_CAMERA)
+
+
 
 TRAY_FRAME = {
     1 : "agv1_load_point_frame",

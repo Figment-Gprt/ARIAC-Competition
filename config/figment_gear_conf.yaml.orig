@@ -11,16 +11,55 @@ sensors:
  #   pose:
  #     xyz: [0.95, 2.6, 0.916]
  #     rpy: [0, 0, 0]
- logical_camera_bin_7_8:
+
+ logical_camera_bin_1_2:
    type: logical_camera
    pose:
-     xyz: [-0.323639, 0.610722, 1.45]
+     xyz: [-1, -1.12, 1.474698]
      rpy: [0, 'pi/2', 0]
+
+ logical_camera_bin_2_3:
+   type: logical_camera
+   pose:
+     xyz: [-1, -0.163713, 1.474698]
+     rpy: [0, 'pi/2', 0]
+
+ logical_camera_bin_3_4:
+   type: logical_camera
+   pose:
+     xyz: [-1, 0.78, 1.474698]
+     rpy: [0, 'pi/2', 0]
+
  logical_camera_bin_5_6:
    type: logical_camera
    pose:
-     xyz: [-0.323639, -0.914553, 1.45]
+     xyz: [-0.343639, -1.12, 1.474698]
      rpy: [0, 'pi/2', 0]
+<<<<<<< HEAD
+
+ logical_camera_bin_6_7:
+   type: logical_camera
+   pose:
+     xyz: [-0.343639, -0.163713, 1.474698]
+     rpy: [0, 'pi/2', 0]
+
+ logical_camera_bin_7_8:
+   type: logical_camera
+   pose:
+     xyz: [-0.343639, 0.78, 1.474698]
+     rpy: [0, 'pi/2', 0]
+
+ logical_camera_agv_1:
+   type: logical_camera
+   pose:
+     xyz: [0.3, 3.15, 1.5]
+     rpy: [0, 'pi/2', 0]
+ logical_camera_agv_2:
+   type: logical_camera
+   pose:
+     xyz: [0.3, -3.15, 1.5]
+     rpy: [0, 'pi/2', 0]
+=======
  # logical_camera_3:
  #   type: logical_camera
  #   pose:
@@ -31,6 +70,7 @@ sensors:
  #   pose:
  #     xyz: [0.3, -3.15, 1.5]
  #     rpy: [0, 'pi/2', 0]
+>>>>>>> belt_devel_wip
  logical_camera_belt_1:
    type: logical_camera
    pose:

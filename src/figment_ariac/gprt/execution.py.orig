@@ -219,7 +219,11 @@ class ExecBin:
 
 ###################       STEP 2       ##########################################  
 
+<<<<<<< HEAD
             if(not jump and exec_step <= 2 and not self.exec_part.isInterupted()): #STEP 2 - Check Any BIN                  
+=======
+            if(exec_step <= 2 and not self.exec_part.isInterupted()): #STEP 2 - move to position in front of the part                  
+>>>>>>> belt_devel_wip
                 
                 rospy.loginfo("\n\n[ExecutePart]: STEP 2 \n")
                 # step 1 - move to position in front of the piece
@@ -292,28 +296,9 @@ class ExecBin:
                     self.part_plan.part.reset()
                     return False
 
-                exec_step =+1 #STEP  - DONE
-
-###################       STEP 6       ##########################################
-
-            if(exec_step <= 6 and not self.exec_part.isInterupted()): #STEP 5 - Verify if piece is pulley part                  
-
-                rospy.loginfo("\n\n[ExecutePart]: STEP 6 \n")
                 
-                if(part_type == "gear_part"):
-                	rospy.sleep(1)
-                	arm_actions.moveToolTip(0.2, 0.1, 1.4)
-
-                	arm_actions.turnAndMoveSideWays(0.01, 0.022)
-                	
-                		
-                if not success:
-                    rospy.loginfo("[ExecutePart]: step failed. Reseting")
-                    self.part_plan.part.reset()
-                    return False
 
                 exec_step =+1 #STEP  - DONE
-                rospy.sleep(3)
 
 ###################       STEP 6       ##########################################                
             if(not jump and exec_step <= 6 and not self.exec_part.isInterupted()): #STEP 6 - Move To TRAY
@@ -477,9 +462,8 @@ class ExecBin:
 
                 exec_step =+1 #STEP  - DONE
 
-
-
                 done = True
+
 
 ###################       STEP 11       ##########################################                            
             # if(exec_step <= 11 and not self.exec_part.isInterupted()): #STEP 11 - Temporary Debug
@@ -492,7 +476,6 @@ class ExecBin:
             #     done = True
 
         return done
-
 
 
 class ExecutePart:
@@ -815,17 +798,19 @@ class ExecutePart:
         return success
         
 
-    def execute_belt(self, part_origin):
 
-        exec_belt = ExecBelt(part_plan=self.partPlan, exec_part=self)
-        success = exec_belt.execute()
-
-        return success
 
     def execute_bin(self, part_origin):
 
         exec_bin = ExecBin(part_plan=self.partPlan, exec_part=self)
         success = exec_bin.execute()
+
+        return success
+
+    def execute_belt(self, part_origin):
+
+        exec_belt = ExecBelt(part_plan=self.partPlan, exec_part=self)
+        success = exec_belt.execute()
 
         return success
 
@@ -838,13 +823,13 @@ class ExecutePart:
         # check where the part is, bin or belt
         part_origin = self.partPlan.pick_piece.origin.value
         success = False
-        # if part is on the bin:
-        if "bin" in part_origin:
-            success = self.execute_bin(part_origin)
-
         # if part is on the belt
-        elif "belt" in part_origin:
+        if "belt" in part_origin:
             success = self.execute_belt(part_origin)
+
+        # if part is on the bin:
+        elif "bin" in part_origin:
+            success = self.execute_bin(part_origin)
 
         # if part is on the tray
         elif "tray" in part_origin:
@@ -868,4 +853,3 @@ def send_agv(kit, tray_id):
     except rospy.ServiceException as exc:
         rospy.logerr("Failed to notify agv %s: %s" % (self.kit_type, exc))
         return False
-
