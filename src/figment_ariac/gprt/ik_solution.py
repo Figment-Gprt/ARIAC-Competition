@@ -4,25 +4,19 @@ from constants import *
 import rospy
 
 
-def solverBin(pos, rot, object_type, ignoreHeight=False):
+def solverBin(pos, rot, object_type, ignore_height=False):
 
 	rospy.loginfo(
-		'[solverBin] pos: {}; rot: {}; object_type {}; ignoreHeight: {}'.format(
-		pos, rot, object_type, ignoreHeight))
+		'[solverBin] pos: {}; rot: {}; object_type {}; ignore_height: {}'.format(
+		pos, rot, object_type, ignore_height))
 	X_PIECE = pos[0]
 	Y_PIECE = pos[1]
 	Z_PIECE = pos[2]
 
 	object_height = OBJECT_HEIGHT[object_type.upper()]
-	if(not ignoreHeight):
+	if(not ignore_height):
 		Z_PIECE+=object_height
 
-	# if object_type == "pulley_part":
-	# 	Y_PIECE -= 0.09
-	# 	T2 = (X_BASE - (X_PIECE + 0.07)) - H_WRIST
-	# elif object_type == "pulley_part_turn":
-	# 	T2 = (X_BASE - X_PIECE) - H_WRIST
-	# else:
 	T2 = (X_BASE - X_PIECE) - H_WRIST
 
 	line_arm_actuator = Y_PIECE + WRIST_LENGTH
@@ -49,17 +43,8 @@ def computeToolTipGoal(pos, currJoints):
 	X_PIECE = pos[0]
 	Y_PIECE = pos[1]
 	Z_PIECE = pos[2]
-
 	
-	Z_PIECE
 
-	# if object_type == "pulley_part":
-	# 	Y_PIECE -= 0.09
-	# 	T2 = (X_BASE - (X_PIECE + 0.07)) - H_WRIST
-	# elif object_type == "pulley_part_turn":
-	# 	T2 = (X_BASE - X_PIECE) - H_WRIST
-	# else:
-	# T2 = (X_BASE - X_PIECE) - H_WRIST
 	T2 = (X_BASE - X_PIECE) - H_WRIST
 
 	line_arm_actuator = Y_PIECE + WRIST_LENGTH
@@ -141,7 +126,7 @@ def solverBelt(pos, rot, object_type):
 
 	return angles
 
-def depositOnTray1(pos, rot, object_type):
+def depositOnTray1(pos, rot, object_type, ignore_height=False):
 	X_PIECE = pos[0]
 	Y_PIECE = pos[1]
 	Z_PIECE = pos[2]
@@ -180,7 +165,7 @@ def depositOnTray1(pos, rot, object_type):
 
 	return angles
 
-def depositOnTray2(pos, rot, object_type):
+def depositOnTray2(pos, rot, object_type, ignore_height=False):
 	X_PIECE = pos[0]
 	Y_PIECE = abs(pos[1])
 	Z_PIECE = pos[2]
