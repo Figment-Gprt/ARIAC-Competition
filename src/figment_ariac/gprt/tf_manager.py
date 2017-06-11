@@ -27,7 +27,7 @@ class TfManager:
     def add_part_id_to_bl(self, part_id):
         self.part_id_black_list.append(part_id)
 
-    def find_part_name(self, part_name, dad=None):
+    def find_part_name(self, part_name, dad=None, sub_dad=None):
         # 
         father = ""
         child = ""
@@ -37,35 +37,33 @@ class TfManager:
                     child = k_child
                     father = dad
                     break
+        elif sub_dad is not None:            
+            fdad = ''
+            # rospy.loginfo("[find_part_name] transforms_dynamic: " + str(self.transforms_dynamic))
+            debug = True
+            # rospy.loginfo("[find_part_name] DEBUG: ")
+            # if(debug):
+            #     for k in self.transforms_dynamic.keys():   
+            #         rospy.loginfo("\n\n\n[find_part_name] k: " + str(k))
+            #         values = self.transforms_dynamic[k]
+            #         rospy.loginfo("[find_part_name] values: " + str(values) + "\n\n") 
+            found = False 
+            for k in self.transforms_dynamic.keys():
+                rospy.loginfo("[find_part_name] test fdad/k: " + str(sub_dad) + "/" + str(k))  
+                if sub_dad in k:
+                    rospy.loginfo("[find_part_name] found sub_dad/k: " + str(sub_dad) + "/" + str(k))
+                    fdad = k
+                    for k_child in self.transforms_dynamic[fdad].keys():
+                        if part_name in k_child and k_child not in self.part_id_black_list:
+                            child = k_child
+                            father = fdad
+                            found = True
+                            rospy.loginfo("[find_part_name] found child/father: " + str(child) + "/" + str(father))
+                            break
+                    if(found):
+                        break                     
 
-        # if sub_dad is not None:
-        #     fdad = ''
-        #     rospy.loginfo("[find_part_name] transforms_dynamic: " + str(self.transforms_dynamic))
-        #     debug = True
-        #     rospy.loginfo("[find_part_name] DEBUG: ")
-        #     if(debug):
-        #         for k in self.transforms_dynamic.keys():   
-        #             rospy.loginfo("\n\n\n[find_part_name] k: " + str(k))
-        #             values = self.transforms_dynamic[k]
-        #             rospy.loginfo("[find_part_name] values: " + str(values) + "\n\n")     
-
-
-        #     for k in self.transforms_dynamic.keys():
-        #         rospy.loginfo("[find_part_name] test fdad/k: " + str(sub_dad) + "/" + str(k))  
-        #         if sub_dad in k:
-        #             fdad = k
-        #             break
-        #     rospy.loginfo("[find_part_name] fdad: " + str(fdad))        
-        #     if(fdad != ''):
-        #         rospy.loginfo("[find_part_name] fdad.keys:  " + str(self.transforms_dynamic[fdad].keys()))
-        #         for k_child in self.transforms_dynamic[fdad].keys():
-        #             rospy.loginfo("[find_part_name] test part_name/k_child: " + str(part_name) + "/" + str(k_child)) 
-        #             if part_name in k_child and k_child not in self.part_id_black_list:
-        #                 child = k_child
-        #                 father = dad
-        #                 break    
-
-        if len(child) == 0:
+        if len(child) == 0 and sub_dad is None:
             for k in self.transforms_dynamic.keys():
                 for k_child in self.transforms_dynamic[k].keys():
                     if part_name in k_child and k_child not in self.part_id_black_list:
@@ -76,7 +74,7 @@ class TfManager:
                     father = k
                     break
 
-        if len(child) == 0:
+        if len(child) == 0 and sub_dad is None: #TODO check id we should avoid in case of sub_dad
             for k in self.transforms_static.keys():
                 for k_child in self.transforms_static[k].keys():
                     if part_name in k_child and k_child not in self.part_id_black_list:
