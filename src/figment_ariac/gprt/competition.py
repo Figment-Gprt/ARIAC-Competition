@@ -60,6 +60,12 @@ class Competition:
         if msg.data == "done":
             self.scheduler.setFinished(True)
 
+    def agv_1_state_callback(sel, ariac_agv_state_msg):
+        global_vars.agv1_status = ariac_agv_state_msg.data  
+        
+    def agv_2_state_callback(sel, ariac_agv_state_msg):
+        global_vars.agv2_status = ariac_agv_state_msg.data   
+
     def order_callback(self, ariac_order_msg):
     	order = order_utils.Order(ariac_order_msg)    	
         rospy.loginfo('New order received. {}'.format(order.get_full_repr()))
@@ -154,6 +160,14 @@ def connect_callbacks(comp_class):
     order_sub = rospy.Subscriber(
         "/ariac/orders", Order, comp_class.order_callback)
     rospy.loginfo("[connect_callbacks] order_callback OK")
+    rospy.loginfo("[connect_callbacks] setting agv_1_state_callback")
+    agv_1_state_sub = rospy.Subscriber(
+        "/ariac/agv1/state", String, comp_class.agv_1_state_callback)
+    rospy.loginfo("[connect_callbacks] agv_1_state_callback OK")
+    rospy.loginfo("[connect_callbacks] setting agv_1_state_callback")
+    agv_2_state_sub = rospy.Subscriber(
+        "/ariac/agv2/state", String, comp_class.agv_2_state_callback)
+    rospy.loginfo("[connect_callbacks] agv_2_state_callback OK")  
     rospy.loginfo("[connect_callbacks] setting joint_state_callback")
     joint_state_sub = rospy.Subscriber(
         "/ariac/joint_states", JointState, comp_class.joint_state_callback)

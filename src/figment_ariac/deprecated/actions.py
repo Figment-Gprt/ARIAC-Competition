@@ -910,7 +910,7 @@ class ActionTurnSameBin(Action):
 
         
         # Move ToolTip UP
-        self.moveToolTip(distanceZ=0.4, distanceX=0, timeToGoal=0.3)
+        self.moveToolTip(distanceZ=0.4, distanceX=0, timeToGoal=0.3) 
 
         # Move a bit to the other side
         self.moveSideways(-0.4, timeToGoal=0.1)
@@ -925,7 +925,7 @@ class ActionTurnSameBin(Action):
 
         rospy.sleep(0.4)  # time to update tf
 
-        self.actionTF = ActionCameraTFTurn(
+        self.actionTF = ActionCameraTFTurn( ####################
             self.actionTF.kit_object, self.actionTF.part_name)
 
         self.actionTF.execute_action()
@@ -1286,7 +1286,6 @@ class MoveUpToolTip(Action):
 
     def moveTo(self, angles, speed):
         msg = utils.createJointTrajectory(angles, speed)
-        #rospy.loginfo("Sending command:\n" + str(msg))
         self.joint_trajectory_publisher.publish(msg)
         rospy.sleep(0.1)
 

@@ -6,6 +6,7 @@ import transform
 
 from utils import *
 from constants import *
+from trajectory_msgs.msg import JointTrajectory
 import gripper_actions
 
 from osrf_gear.srv import AGVControl
@@ -115,11 +116,93 @@ class ExecBin:
 
 ###################       STEP 5       ##########################################
 
-            if(not jump and exec_step <= 5 and not self.exec_part.isInterupted()): #STEP 5 - Move back to initial position with the piece                  
+            if(not jump and exec_step <= 5 and not self.exec_part.isInterupted()): #STEP 5 - Verify if piece is pulley part                  
 
                 rospy.loginfo("\n\n[ExecutePart]: STEP 5 \n")
-                success = self.exec_part.move_wait_front_part(part_world_position=part_world_position, 
-                                force_check_piece=True, force_grp_sts=True)
+
+                # lembrar de trocar pelas condicoes certas
+                if (part_type != "pulley_part"):
+                    success = self.exec_part.move_wait_front_part(part_world_position=part_world_position, 
+                                    force_check_piece=True, force_grp_sts=True)
+                    if not success:
+                        rospy.loginfo("[ExecutePart]: step failed. Reseting")
+                        self.part_plan.part.reset()
+                        return False
+
+                
+                elif(part_type == "pulley_part"):
+                	
+                	arm_actions.moveToolTip(0.3, 0.1, 1.4)
+                	rospy.loginfo("\n\nSTEP 5 - PASSO 1 \n")
+                	
+                	arm_actions.turnWrist(0.01)
+                	rospy.loginfo("\n\nSTEP 5 - PASSO 2 \n")
+                	
+                	arm_actions.MoveSideWays(0.022)
+                	rospy.loginfo("\n\nSTEP 5 - PASSO 3 \n")
+                	
+                	# Move ToolTip close to goal really fast
+                	arm_actions.moveToolTip(-0.285, 0.13, 2)
+                	rospy.loginfo("\n\nSTEP 5 - PASSO 4 \n")
+                	# rospy.sleep(30)
+
+                	rospy.sleep(0.7)
+
+                	gripper_actions.send_gripping_cmd(toGrip=False)
+                	
+                	arm_actions.MoveSideWays(0.4)
+                	rospy.loginfo("\n\nSTEP 5 - PASSO 5 \n")
+                	rospy.sleep(1)
+                	
+
+                	gripper_actions.wait_for_gripper(toGrip=False, max_wait=5, inc_sleep=0.01)
+                	rospy.loginfo("\n\nSTEP 5 - PASSO 6 \n")
+                	rospy.sleep(1)
+                	
+                	arm_actions.turnWrist(-1.5707963268)
+                	rospy.loginfo("\n\nSTEP 5 - PASSO 7 \n")
+                	rospy.sleep(1)
+
+                	 # Move ToolTip UP
+                	arm_actions.moveToolTip(0.4, 0, 0.3)
+                	rospy.loginfo("\n\nSTEP 5 - PASSO 8 \n")
+                	rospy.sleep(1)
+                	
+                	#Move a bit to the other side
+                	arm_actions.MoveSideWays(-0.3)
+                	rospy.loginfo("\n\nSTEP 5 - PASSO 9 \n")
+                	rospy.sleep(1)
+                	
+                	# Move ToolTip Down
+                	arm_actions.moveToolTip(-0.01, 0.23, 0.2)
+                	rospy.loginfo("\n\nSTEP 5 - PASSO 10 \n")
+                	rospy.sleep(1)
+                	
+                	 # Move a bit to the other side
+                	arm_actions.MoveSideWays(0.3)
+                	rospy.loginfo("\n\nSTEP 5 - Aqui ok? \n")
+                	rospy.sleep(1)
+
+                	rospy.sleep(0.4)
+
+                    camera_id, part_id = global_vars.tf_manager.find_part_name(part_type)
+                    if(camera_id is None or part_id is None):
+                        rospy.loginfo(
+                            "[ExecutePart]:Failed. No available part {} found".format(part_type))
+                        self.part_plan.part.reset()
+                        return False
+                    r = self.exec_part.find_part_any_bin(camera_id, part_id, part_type)
+                    if(r is None):
+                        rospy.loginfo(
+                            "[ExecutePart]:Failed. No available part {} found".format(part_type))
+                        self.part_plan.part.reset()
+                        return False
+                    part_world_position, part_world_orientation = r
+
+                    rospy.sleep(1)
+
+                	
+                		
                 if not success:
                     rospy.loginfo("[ExecutePart]: step failed. Reseting")
                     self.part_plan.part.reset()
@@ -137,12 +220,16 @@ class ExecBin:
                     self.part_plan.part.reset()
                     return False
 
+            if(exec_step <= 6 and not self.exec_part.isInterupted()): #STEP 6 - Temporary Debug
                 exec_step =+1 #STEP  - DONE
 
 ###################       STEP 7       ##########################################                
             if(not jump and exec_step <= 7 and not self.exec_part.isInterupted()): #STEP 7 - Put Part at tray
                 rospy.loginfo("\n\n[ExecutePart]: STEP 7 \n")
-                
+                #DEBUG LACK OF PARTS
+                # gripper_actions.send_gripping_cmd(toGrip=False)
+                # gripper_actions.wait_for_gripper(toGrip=False, max_wait=5, inc_sleep=0.01)
+                # rospy.sleep(0.5)
                 success = self.exec_part.deposit_at_tray(desired_part_pose=desired_part_pose, part_type=part_type, tray_id=tray_id, force_check_piece=True)
 
                 if not success:
@@ -414,9 +501,8 @@ def send_agv(kit, tray_id):
                   " to : " + agvServiceName)
     rospy.wait_for_service(agvServiceName)
     try:
-
-        send_agv = rospy.ServiceProxy(
-            agvServiceName, AGVControl)
+    	send_agv = rospy.ServiceProxy(
+    		agvServiceName, AGVControl)
         success = send_agv(kit.kit_type)
         rospy.sleep(1)
         return success
