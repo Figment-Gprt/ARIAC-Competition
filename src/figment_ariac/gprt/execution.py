@@ -111,11 +111,15 @@ class ExecBin:
 
                 rospy.loginfo("\n\n[ExecutePart]: STEP 4 \n")
                 # 3 - go down until get the part
-                success = arm_actions.go_down_until_get_piece(part_world_position, 
-                                                    part_world_orientation, 
-                                                    part_type)
+
+                success = arm_actions.go_down_until_get_piece(world_position=part_world_position, 
+                                        world_orientation=part_world_orientation, 
+                                        part_type=part_type, 
+                                        time=3, ignore_height=False, 
+                                        distance=0.02, solver_type=arm_actions.SolverType.BIN)
                 if not success:
                     rospy.loginfo("[ExecutePart]: step4 failed. Reseting")
+                    #TODO insert at blacklist
                     self.part_plan.part.reset()
                     return False
 
@@ -179,6 +183,21 @@ class ExecBin:
                     # waiting tf_manager update
                     rospy.sleep(1)
                     camera_id, part_id = global_vars.tf_manager.find_part_name(part_name=part_name, dad=camera_name)
+                    rospy.loginfo("[ExecutePart]: DEBUG camera_id: {} ; part_id{}".format(camera_id, part_id))
+                    if(len(camera_id) == 0 or len(part_id) == 0): #part not found
+                        rospy.loginfo("[ExecutePart]: step7 failed [part not found]. Reseting")
+                        arm_actions.moveToolTipZY(incrementZ=0.2, incrementY=incrementY, timeToGoal=0.2)
+                        success = self.exec_part.move_to_tray(tray_id=tray_id, 
+                                                    force_check_piece=False, 
+                                                    force_grp_sts=False, 
+                                                    time=1)
+                        # rospy.loginfo("[ExecutePart]: DEBUG SLEEL \n\n\n")
+                        # rospy.sleep(10)
+                        if not success:
+                            #TODO MOVE UP A BIT
+                            rospy.logerr("[ExecutePart]: step7 failed. Could not get back to AGV")
+                        self.part_plan.part.reset()
+                        return False    
                     r = self.exec_part.find_part_any_agvs(part_id)
                     
                     
