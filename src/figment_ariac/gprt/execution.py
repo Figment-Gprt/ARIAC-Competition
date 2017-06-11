@@ -49,7 +49,11 @@ class ExecBin:
                     rospy.loginfo("\n\n[ExecutePart]: STEP 1 \n")
                     # step 0 - get available pose for a part on any bin
                     camera_id, part_id = global_vars.tf_manager.find_part_name(part_type)
-                    if(camera_id is None or part_id is None):
+                    # getting part id without the camera id
+                    part_name = part_id[part_id.find(part_type):-6]
+                    print "\n\n\n\n\n\n\n\n      " + part_name
+                    
+                    if(len(camera_id) == 0 or len(part_id) == 0):
                         rospy.loginfo(
                             "[ExecutePart]:Failed. No available part {} found".format(part_type))
                         self.part_plan.part.reset()
@@ -168,11 +172,9 @@ class ExecBin:
 
                 if not success:
                     rospy.loginfo("[ExecutePart]: step7 failed. Reseting")
-                    #TODO get only the part type that dropped
-                    #A way to do this is to find only the part_type 
-                    #with a position for a PartPlan/part that was not marked as Done yet
-                    #pass the parent_kit to find_part_name
-                    camera_id, part_id = global_vars.tf_manager.find_part_name(part_name=part_type, 
+                    # waiting tf_manager update
+                    rospy.sleep(1)
+                    camera_id, part_id = global_vars.tf_manager.find_part_name(part_name=part_name, 
                                                                     dad="logical_camera_agv_1_frame")
                     r = self.exec_part.find_part_any_agvs(camera_id, part_id, part_type)
                     
@@ -189,17 +191,18 @@ class ExecBin:
 
                     solver = arm_actions.SolverType.AGV1 if tray_id == 1 else arm_actions.SolverType.AGV2
                     
-                    arm_actions.moveToolTip(0.3, 0.1, 1.4)
+                    # arm_actions.moveToolTip(0.3, 0.1, 1.4)
                     
                     success = self.exec_part.move_wait_above_part(part_world_position, part_world_orientation, part_type, solver, 0.1)
 
-                    success = arm_actions.go_down_until_get_piece(world_position=part_world_position, 
+                    if success:
+                        success = arm_actions.go_down_until_get_piece(world_position=part_world_position, 
                                                                 world_orientation=part_world_orientation, 
                                                                 part_type=part_type, 
                                                                 time=3, ignore_height=False, 
                                                                 distance=0.01, solver_type=arm_actions.SolverType.AGV1)
                     
-                    arm_actions.moveToolTip(0.3, 0.1, 1.4)
+                    # arm_actions.moveToolTip(0.3, 0.1, 1.4)
 
                     rospy.logerr("........................................................................")
                     if success :
