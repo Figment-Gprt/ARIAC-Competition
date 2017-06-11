@@ -37,7 +37,8 @@ class ExecBin:
                 desired_part_pose = self.part_plan.part.desired_pose
                 exec_step =+1 #STEP 0 - DONE
                 to_flip = self.part_plan.to_flip
-                rospy.loginfo("\n\n[ExecutePart]: STEP 0 : Part must be FLIPPED\n\n\n\n")
+                if to_flip:
+                    rospy.loginfo("\n\n[ExecutePart]: STEP 0 : Part must be FLIPPED\n\n\n\n")
 
 ###################       STEP 1       ##########################################
 
@@ -181,14 +182,19 @@ class ExecBin:
                     print ("\n\n\n\n " + str(part_world_orientation) + " \n\n\n\n\n")
                     print ("\n\n\n\n " + str(part_type) + " \n\n\n\n\n") 
 
-                    #TODO MOVE UP A BIT
-                    success = self.exec_part.move_wait_above_part(part_world_position, part_world_orientation, part_type, arm_actions.SolverType.AGV1, 0.1)
+                    solver = arm_actions.SolverType.AGV1 if tray_id == 1 else arm_actions.SolverType.AGV2
+                    
+                    arm_actions.moveToolTip(0.3, 0.1, 1.4)
+                    
+                    success = self.exec_part.move_wait_above_part(part_world_position, part_world_orientation, part_type, solver, 0.1)
+
                     success = arm_actions.go_down_until_get_piece(world_position=part_world_position, 
                                                                 world_orientation=part_world_orientation, 
                                                                 part_type=part_type, 
                                                                 time=3, ignore_height=False, 
                                                                 distance=0.01, solver_type=arm_actions.SolverType.AGV1)
-                    #TODO MOVE UP A BIT
+                    
+                    arm_actions.moveToolTip(0.3, 0.1, 1.4)
 
                     rospy.logerr("........................................................................")
                     if success :
@@ -299,9 +305,10 @@ class ExecutePart:
             rospy.loginfo("[ExecutePart]: part: "+ str(part_id))
             # getting bin id from the part
             for k, v in BINS_CAMERA.items():
-                if v in camera_id:
-                    part_origin = k
-                    break
+                for cams in v:
+                    if cams in camera_id:
+                        part_origin = k
+                        break
             # getting position and orientation from the part
             transforms_list = global_vars.tf_manager.get_transform_list(part_id, 'world')
             return transform.transform_list_to_world(transforms_list)

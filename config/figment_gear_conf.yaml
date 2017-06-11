@@ -33,19 +33,19 @@ sensors:
  logical_camera_bin_5_6:
    type: logical_camera
    pose:
-     xyz: [-0.323639, -1.12, 1.474698]
+     xyz: [-0.343639, -1.12, 1.474698]
      rpy: [0, 'pi/2', 0]
 
  logical_camera_bin_6_7:
    type: logical_camera
    pose:
-     xyz: [-0.323639, -0.163713, 1.474698]
+     xyz: [-0.343639, -0.163713, 1.474698]
      rpy: [0, 'pi/2', 0]
 
  logical_camera_bin_7_8:
    type: logical_camera
    pose:
-     xyz: [-0.323639, 0.78, 1.474698]
+     xyz: [-0.343639, 0.78, 1.474698]
      rpy: [0, 'pi/2', 0]
 
  logical_camera_agv_1:
