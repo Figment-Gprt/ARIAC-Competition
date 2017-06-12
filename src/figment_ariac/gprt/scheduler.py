@@ -245,6 +245,9 @@ class Scheduler:
         part_place = self.check_part_origin(working_part.part_type)
         rospy.loginfo("[Scheduler]: part_place" + str(part_place))
 
+        part_plan = PartPlan(part = working_part, 
+                            pick_piece=None, kit_plan = kit_plan)
+
         pick_piece = None
         for init_id in part_place:
             # part will be spawned at belt
@@ -261,7 +264,7 @@ class Scheduler:
                 pick_piece = PickPiece(PickPlaces.ANY_BIN, None, None)
                 break
         
-        part_plan = None
+        
         if pick_piece is not None:
             part_plan = PartPlan(part = working_part, 
                             pick_piece=pick_piece, kit_plan = kit_plan)
@@ -291,15 +294,34 @@ class Scheduler:
             rospy.logerr(working_order.get_full_repr()) 
             return
 
-        working_part = self.get_frs_non_fin_part_from_kit(working_kit)
-        if(working_part is None):
-            rospy.logerr("[Scheduler] There are no unfinished part but the kit is not finished")
-            rospy.logerr(working_order.get_full_repr()) 
-            return
 
-        part_plan = self.get_plan_for_part(working_part)
-        working_part.plan = part_plan
-        return part_plan
+        parts_number = len(working_kit.parts)
+        idx_parts = 0
+        found_part_ok = False
+        while(idx_parts < parts_number and not found_part_ok):
+        	working_part = working_kit.parts[idx_parts]
+        	if(working_part.get_status() is not order_utils.Status.DONE):
+        		part_plan = self.get_plan_for_part(working_part)
+        		if(part_plan is not None and part_plan.pick_piece is not None):
+        			found_part_ok = True	
+        			break
+        	idx_parts+=1
+
+        # working_part = self.get_frs_non_fin_part_from_kit(working_kit)
+        # if(working_part is None):
+        #     rospy.logerr("[Scheduler] There are no unfinished part but the kit is not finished")
+        #     rospy.logerr(working_order.get_full_repr()) 
+        #     return
+
+        # part_plan = self.get_plan_for_part(working_part)
+
+        if(found_part_ok):
+        	working_part.plan = part_plan
+        	return part_plan
+        else:
+        	return
+        
+        
 
     #Get first non finished part from kit
     def get_frs_non_fin_part_from_kit(self, kit):
