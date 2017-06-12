@@ -298,27 +298,6 @@ class ExecBin:
 
                 exec_step =+1 #STEP  - DONE
 
-###################       STEP 6       ##########################################
-
-            if(exec_step <= 6 and not self.exec_part.isInterupted()): #STEP 5 - Verify if piece is pulley part                  
-
-                rospy.loginfo("\n\n[ExecutePart]: STEP 6 \n")
-                
-                if(part_type == "gear_part"):
-                	rospy.sleep(1)
-                	arm_actions.moveToolTip(0.2, 0.1, 1.4)
-
-                	arm_actions.turnAndMoveSideWays(0.01, 0.022)
-                	
-                		
-                if not success:
-                    rospy.loginfo("[ExecutePart]: step failed. Reseting")
-                    self.part_plan.part.reset()
-                    return False
-
-                exec_step =+1 #STEP  - DONE
-                rospy.sleep(3)
-
 ###################       STEP 6       ##########################################                
             if(not jump and exec_step <= 6 and not self.exec_part.isInterupted()): #STEP 6 - Move To TRAY
                 rospy.loginfo("\n\n[ExecutePart]: STEP 6 \n")
