@@ -11,18 +11,18 @@ STATIC_POSITIONS = {
     "disBelAgv1": [1.76, 0.90, -1.26, 0.13, 4.15, -1.57, 0.0],
     "belt": [1.89, 1.19, -1.13, 0, 4.52, -1.57, 0.0],
     "initial_position": [2.51, 0.0, -1.13, 3.14, 3.14, -1.51, 0.0],
-    "rest_position" : [2.75, 0.0, -1.308996939, 3.1415926536, 3.27, -1.5707963268, 0.0],
+    "rest_position" : [2.75, 0.0, -1.308996939, 3.1415926536, 3.27, -1.5707963268, 0.0] 
 }
 
 BINS_CAMERA = {
-    "bin5"	: "logical_camera_bin_5_6",
-    "bin6"	: ["logical_camera_bin_5_6", "logical_camera_bin_6_7"],
-    "bin7"	: ["logical_camera_bin_6_7", "logical_camera_bin_7_8"],
-    "bin8"	: "logical_camera_bin_7_8",
+    "bin5" : "logical_camera_bin_5_6",
+    "bin6"  : ["logical_camera_bin_5_6", "logical_camera_bin_6_7"],
+    "bin7"  : ["logical_camera_bin_6_7", "logical_camera_bin_7_8"],
+    "bin8"  : "logical_camera_bin_7_8",
     "bin1"  : "logical_camera_bin_1_2",
     "bin2"  : ["logical_camera_bin_1_2", "logical_camera_bin_2_3"],
     "bin3"  : ["logical_camera_bin_2_3", "logical_camera_bin_3_4"],
-    "bin4"  : ["logical_camera_bin_3_4"]
+    "bin4"  : ["logical_camera_bin_3_4"]   
 }
 
 AGVS_CAMERA = {
@@ -41,7 +41,6 @@ ORIGN_CAMERA.update(BELT_CAMERA)
 ALL_CAMERA = {}
 ALL_CAMERA.update(ORIGN_CAMERA)
 ALL_CAMERA.update(AGVS_CAMERA)
-
 
 
 TRAY_FRAME = {

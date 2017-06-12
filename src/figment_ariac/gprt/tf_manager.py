@@ -11,7 +11,7 @@ class TfManager:
         This class manages all transform objects published on the /tf topic
     """
 
-    def __init__(self, timeBuffer=2.5):
+    def __init__(self, timeBuffer=0.8):
         self.transforms_dynamic = {}
         self.transforms_static = {}
         self.timeBuffer = timeBuffer
@@ -26,6 +26,10 @@ class TfManager:
 
     def add_part_id_to_bl(self, part_id):
         self.part_id_black_list.append(part_id)
+
+    def get_piece_tf_time(self, father, child):
+        if len(father) > 0:
+            return self.transforms_dynamic[father][child]['secs']
 
     def find_part_name(self, part_name, dad=None, sub_dad=None):
         # 
