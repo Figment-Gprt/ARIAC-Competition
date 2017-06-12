@@ -159,7 +159,7 @@ def go_down_until_get_piece(world_position, world_orientation, part_type,
         "[go_down_until_get_piece] send_gripping_cmd Failure")
         return False
 
-    success = gripper_actions.wait_for_gripper(toGrip=True, max_wait=time, inc_sleep=0.01)
+    success = gripper_actions.wait_for_gripper(toGrip=True, max_wait=time+1, inc_sleep=0.01)
     if not success:
         rospy.logerr(
         "[go_down_until_get_piece] wait_for_gripper Failure")
