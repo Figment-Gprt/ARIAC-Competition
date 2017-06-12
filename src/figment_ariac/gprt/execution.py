@@ -180,13 +180,16 @@ class ExecBin:
 
                 if not success:
                     rospy.loginfo("[ExecutePart]: step7 failed. Reseting")
+                    rospy.loginfo("[ExecutePart][STEP7] - Move tool tip up")
+                    arm_actions.moveToolTipZY(incrementZ=0.2, incrementY=incrementY, timeToGoal=1.2)
+
                     # waiting tf_manager update
-                    rospy.sleep(1)
+                    rospy.sleep(5)
                     camera_id, part_id = global_vars.tf_manager.find_part_name(part_name=part_name, dad=camera_name)
                     rospy.loginfo("[ExecutePart]: DEBUG camera_id: {} ; part_id{}".format(camera_id, part_id))
                     if(len(camera_id) == 0 or len(part_id) == 0): #part not found
                         rospy.loginfo("[ExecutePart]: step7 failed [part not found]. Reseting")
-                        arm_actions.moveToolTipZY(incrementZ=0.2, incrementY=incrementY, timeToGoal=0.2)
+                        # arm_actions.moveToolTipZY(incrementZ=0.2, incrementY=incrementY, timeToGoal=0.2)
                         success = self.exec_part.move_to_tray(tray_id=tray_id, 
                                                     force_check_piece=False, 
                                                     force_grp_sts=False, 
@@ -198,7 +201,7 @@ class ExecBin:
                             rospy.logerr("[ExecutePart]: step7 failed. Could not get back to AGV")
                         self.part_plan.part.reset()
                         return False    
-                    r = self.exec_part.find_part_any_agvs(part_id)
+                    r = self.exec_part.find_part_any_agvs(part_id)#TODO any agv or a specific agv?
                     
                     
                     part_world_position, part_world_orientation = r
@@ -207,20 +210,25 @@ class ExecBin:
                     print ("\n\n\n\n " + str(part_world_position) + " \n\n\n\n\n")
                     print ("\n\n\n\n " + str(part_world_orientation) + " \n\n\n\n\n")
                     print ("\n\n\n\n " + str(part_type) + " \n\n\n\n\n") 
-
-                    arm_actions.moveToolTipZY(0.3, incrementY, 1.4)
                     
-                    success = self.exec_part.move_wait_above_part(part_world_position, part_world_orientation, part_type, solver, 0.2)
+                    # success = self.exec_part.move_wait_above_part(part_world_position, part_world_orientation, part_type, solver, 0.2)
 
-                    
+                    rospy.loginfo("[ExecutePart][STEP7] - Move Wait a bit above")
+                    success = self.exec_part.move_wait_above_part(part_world_position=part_world_position, 
+                                            part_world_orientation=part_world_orientation, 
+                                            part_type=part_type, solver_type=solver, 
+                                            a_bit_above_value=0.05, 
+                                            time_to_execute_action=1)
+                    rospy.sleep(10)
                     if success:
+                        rospy.loginfo("[ExecutePart][STEP7] - go_down_until_get_piece")
                         success = arm_actions.go_down_until_get_piece(world_position=part_world_position, 
                                                                 world_orientation=part_world_orientation, 
                                                                 part_type=part_type, 
                                                                 time=3, ignore_height=False, 
                                                                 distance=0.01, solver_type=arm_actions.SolverType.AGV1)
                     
-                    arm_actions.moveToolTipZY(0.3, incrementY, 1.4)
+                        arm_actions.moveToolTipZY(0.3, incrementY, 1.4)
 
                     rospy.logerr("........................................................................")
                     if success :
@@ -268,7 +276,6 @@ class ExecBin:
 
                     
                     rospy.loginfo("[ExecutePart][STEP8] - Move Wait a bit above")
-                    success = self.exec_part.move_wait_above_part(part_world_position, part_world_orientation, part_type, solver, 0.1)
                     success = self.exec_part.move_wait_above_part(part_world_position=part_world_position, 
                                             part_world_orientation=part_world_orientation, 
                                             part_type=part_type, solver_type=solver, 
