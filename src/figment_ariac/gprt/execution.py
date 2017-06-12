@@ -28,8 +28,9 @@ class ExecBelt:
 ###################       STEP 0       ##########################################        
 
         while(not failed_comple and not done and not self.exec_part.isInterupted()):
+            jump = False
 
-            if(exec_step <= 0): #STEP 0 - Setup env
+            if(not jump and exec_step <= 0): #STEP 0 - Setup env
                 part_origin = self.part_plan.pick_piece.origin.value
                 part_type = self.part_plan.part.part_type
                 part_world_position = self.part_plan.pick_piece.world_position
@@ -39,7 +40,7 @@ class ExecBelt:
                 exec_step =+1 #STEP 0 - DONE
 
 ###################       STEP 1       ##########################################
-            if(exec_step <= 1 and not self.exec_part.isInterupted()): #STEP 1 - Check Belt
+            if(not jump and exec_step <= 1 and not self.exec_part.isInterupted()): #STEP 1 - Check Belt
 
                 if part_origin == PickPlaces.BELT.value:
                     rospy.loginfo("\n\n[ExecuteBeltPart]: STEP 1 \n")
@@ -64,7 +65,7 @@ class ExecBelt:
 
 ###################       STEP 2       ##########################################  
 
-            if(exec_step <= 2 and not self.exec_part.isInterupted()): #STEP 2 - move to belt static position
+            if(not jump and exec_step <= 2 and not self.exec_part.isInterupted()): #STEP 2 - move to belt static position
                 
                 rospy.loginfo("\n\n[ExecutePart]: STEP 2 \n")
                 # step 1 - move to position in front of the piece
@@ -78,7 +79,7 @@ class ExecBelt:
 
 ###################       STEP 3       ##########################################                     
 
-            if(exec_step <= 3 and not self.exec_part.isInterupted()): #STEP 3 - follow the part on the belt
+            if(not jump and exec_step <= 3 and not self.exec_part.isInterupted()): #STEP 3 - follow the part on the belt
 
                 rospy.loginfo("\n\n[ExecuteBeltPart]: STEP 3 \n")
                 max_attempt = 3
@@ -102,7 +103,7 @@ class ExecBelt:
 
 ###################       STEP 4       ##########################################
 
-            if(exec_step <= 4 and not self.exec_part.isInterupted()): #STEP 4 - Move back to initial position with the piece                  
+            if(not jump and exec_step <= 4 and not self.exec_part.isInterupted()): #STEP 4 - Move back to initial position with the piece                  
 
                 rospy.loginfo("\n\n[ExecuteBeltPart]: STEP 4 \n")
                 success = self.exec_part.move_wait_belt(part_world_position)
@@ -114,7 +115,7 @@ class ExecBelt:
                 exec_step =+1 #STEP  - DONE
 
 ###################       STEP 5       ##########################################                
-            if(exec_step <= 5 and not self.exec_part.isInterupted()): #STEP 5 - Move To TRAY
+            if(not jump and exec_step <= 5 and not self.exec_part.isInterupted()): #STEP 5 - Move To TRAY
                 rospy.loginfo("\n\n[ExecuteBeltPart]: STEP 5 \n")
                 success = self.exec_part.move_to_tray(tray_id)
                 # success = self.exec_part.move_wait_front_part(part_world_position)
@@ -485,6 +486,7 @@ class ExecBin:
                             rospy.logerr("[ExecutePart]: step7 failed. Could not get back to AGV")
                         self.part_plan.part.reset()
                         return False    
+                    rospy.sleep(1)
                     r = self.exec_part.find_part_any_agvs(part_id)#TODO any agv or a specific agv?
                     
                     
@@ -501,7 +503,7 @@ class ExecBin:
                     success = self.exec_part.move_wait_above_part(part_world_position=part_world_position, 
                                             part_world_orientation=part_world_orientation, 
                                             part_type=part_type, solver_type=solver, 
-                                            a_bit_above_value=0.05, 
+                                            a_bit_above_value=0.1, 
                                             time_to_execute_action=1)
                     rospy.sleep(10)
                     if success:
@@ -510,7 +512,7 @@ class ExecBin:
                                                                 world_orientation=part_world_orientation, 
                                                                 part_type=part_type, 
                                                                 time=3, ignore_height=False, 
-                                                                distance=0.01, solver_type=arm_actions.SolverType.AGV1,
+                                                                distance=0.1, solver_type=arm_actions.SolverType.AGV1,
                                                                 adjust=True)
                     
                         arm_actions.moveToolTipZY(0.3, incrementY, 1.4)
@@ -780,7 +782,7 @@ class ExecutePart:
             else:
                 return True
 
-    def move_wait_above_part(self, part_world_position, part_world_orientation, part_type, solver_type=arm_actions.SolverType.BIN, a_bit_above_value=0.015, time_to_execute_action=1, accError=[0.009, 0.009, 0.009, 0.009,0.015, 0.015, 0.009, 0.009, 0.009]):
+    def move_wait_above_part(self, part_world_position, part_world_orientation, part_type, solver_type=arm_actions.SolverType.BIN, a_bit_above_value=0.015, time_to_execute_action=1, accError=[0.009, 0.009, 0.009, 0.009,0.015, 0.015, 0.009, 0.009, 0.009], adjust=False):
         rospy.loginfo("[ExecutePart]: move_wait_above_part: "+ str(part_world_position))
         list_joint_values = arm_actions.go_to_position_a_bit_above_part(
             world_position=part_world_position,
@@ -788,7 +790,8 @@ class ExecutePart:
             part_type=part_type, 
             time_to_execute_action=time_to_execute_action, 
             solver_type=solver_type,
-            a_bit_above_value=a_bit_above_value)
+            a_bit_above_value=a_bit_above_value,
+            adjust=adjust)
 
         success = arm_actions.check_arm_joint_values_published(
             list_of_joint_values=list_joint_values,
