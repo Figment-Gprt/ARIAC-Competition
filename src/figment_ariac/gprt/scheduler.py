@@ -245,7 +245,7 @@ class Scheduler:
         part_place = self.check_part_origin(working_part.part_type)
         rospy.loginfo("[Scheduler]: part_place" + str(part_place))
 
-        
+        pick_piece = None
         for init_id in part_place:
             # part will be spawned at belt
             if init_id.unit_id == "belt":
@@ -261,8 +261,10 @@ class Scheduler:
                 pick_piece = PickPiece(PickPlaces.ANY_BIN, None, None)
                 break
         
-        part_plan = PartPlan(part = working_part, 
-                        pick_piece=pick_piece, kit_plan = kit_plan)
+        part_plan = None
+        if pick_piece is not None:
+            part_plan = PartPlan(part = working_part, 
+                            pick_piece=pick_piece, kit_plan = kit_plan)
 
         rospy.loginfo("[Scheduler]: " + str(part_plan))    
 
@@ -271,6 +273,7 @@ class Scheduler:
 
 
     def get_next_part_plan(self):
+        # TODO: improve the part select
         len_order_list = len(self.order_list)
 
         if(len_order_list == 0):

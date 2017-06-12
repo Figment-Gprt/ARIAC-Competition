@@ -44,7 +44,7 @@ class ExecBelt:
                 if part_origin == PickPlaces.BELT.value:
                     rospy.loginfo("\n\n[ExecuteBeltPart]: STEP 1 \n")
                     # step 0 - get available pose for a part on any bin
-                    camera_name = BIN_CAMERA["belt"] + "_frame"
+                    camera_name = ORIGN_CAMERA["belt"] + "_frame"
                     camera_id, part_id = global_vars.tf_manager.find_part_name(part_type, dad=camera_name)
                     if(camera_id is None or part_id is None):
                         rospy.loginfo(
@@ -147,7 +147,7 @@ class ExecBelt:
             if(exec_step <= 7 and not self.exec_part.isInterupted()): #STEP 7 - Move To TRAY
                 rospy.loginfo("\n\n[ExecuteBeltPart]: STEP 7 \n")
                 
-                success = self.exec_part.move_to_tray(tray_id, force_check_piece=False)
+                success = self.exec_part.move_to_tray(tray_id, force_check_piece=False, time=0.5)
                 # success = self.exec_part.move_wait_front_part(part_world_position)
                 if not success:
                     rospy.loginfo("[ExecuteBeltPart]: step7 failed. Reseting")
