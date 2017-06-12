@@ -324,7 +324,7 @@ class ExecBin:
                     camera_name = AGVS_CAMERA["agv2"]
                     solver = arm_actions.SolverType.AGV2
                     incrementY=0.1
-                success = self.exec_part.deposit_at_tray(desired_part_pose=desired_part_pose, part_type=part_type, tray_id=tray_id, force_check_piece=True)
+                success = self.exec_part.deposit_at_tray(desired_part_pose=desired_part_pose, part_type=part_type, tray_id=tray_id, force_check_piece=True, time_to_execute_action=1)
 
                 if not success:
                     rospy.loginfo("[ExecutePart]: step7 failed. Reseting")
@@ -529,7 +529,9 @@ class ExecutePart:
         angles = arm_actions.go_to_belt()
 
         # checking joint states
-        success = arm_actions.check_arm_joint_values_published(list_of_joint_values=angles, 
+        success = arm_actions.check_arm_joint_values_published(list_of_joint_values=angles,
+                                            accError=[0.009, 0.009, 0.009, 0.009,
+                                               0.015, 0.015, 0.009, 0.009, 0.1],
                                             force_check_piece=False, force_grp_sts=True)
         if not success:
             rospy.logerr("[ExecutePart]: move_wait_front_part failed")
@@ -556,52 +558,81 @@ class ExecutePart:
         initial_position = deepcopy(list_joint_values)
 
         t = rospy.get_time()
-        incr = (t-part_world_tf_time) * 0.2 if part_world_position[1] - camera_pos[1] < 0 else 0
-
-        found_piece = True
-        list_joint_values[1] -= WRIST_LENGTH
-
-        dist = part_world_position[1] - pos_robot[1]
         timer = rospy.get_time()
+        time_diff = (t-part_world_tf_time)
+        print "a_time: " + str(t) + " trans_time: " + str(part_world_tf_time) + " diff = " + str(time_diff)
+        incr = time_diff * 0.2  # if time_diff > 2 else 0.2
+        # wrist_comp = WRIST_1_2 * 0.33 if time_diff > 2 else WRIST_1_2/2
+        pos_robot[0] = list_joint_values[0] 
+        pos_robot[1] = list_joint_values[1] - incr + WRIST_1_2 * 0.33
+        pos_robot[3] = list_joint_values[3] 
+        pos_robot[4] = list_joint_values[4] 
+        pos_robot[5] = list_joint_values[5]
+        pos_robot[6] = list_joint_values[6]
+        arm_actions.set_arm_joint_values(pos_robot, time_diff)
+
 
         while not global_vars.gripper_state.attached:
-            
-            print (pos_robot[1] + WRIST_LENGTH, list_joint_values[1], incr, dist,round(list_joint_values[1] - (pos_robot[1] + WRIST_LENGTH), 3))#pos_robot[1], incr, round(abs(list_joint_values[1] - pos_robot[1]), 3))
-           
-            if (round(list_joint_values[1] - (pos_robot[1] + WRIST_LENGTH), 3) <= 0.009 and round(list_joint_values[1] - (pos_robot[1] + WRIST_LENGTH), 3) > 0) or not found_piece:
-                pos_robot[1] -= 0.02
-                temp = list_joint_values[1]
-                list_joint_values[1] = pos_robot[1] - WRIST_LENGTH
-                # list_joint_values[1] = pos_robot[1] - WRIST_LENGTH
-                arm_actions.set_arm_joint_values(list_joint_values, 1)
-                gripper_actions.send_gripping_cmd(toGrip=True)
-                list_joint_values[1] = temp - 0.02
-                # list_joint_values[1] -= 0.02
-                print ("CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC")
-                found_piece = False
-            if found_piece:
-                if list_joint_values[1] < pos_robot[1] + WRIST_LENGTH and round(list_joint_values[1] - (pos_robot[1] + WRIST_LENGTH), 3) < 0:
-                    print ("AAAAAAAAAAAAAAAAAAAAAAAAAAA")
-                    t = rospy.get_time()
-                    # dist = (pos_robot[1] + WRIST_LENGTH) - list_joint_values[1]
-                    # pos_robot[1] -= 0.4+dist
-                    incr = ((t-part_world_tf_time) * 0.2) - dist
-                    pos_robot[1] -= 0.2+incr
+            gripper_actions.send_gripping_cmd(toGrip=True)
+            pos_robot[1] -= 0.2 
 
-                    arm_actions.set_arm_joint_values(pos_robot, 1)
-                    found_piece = False
+            if pos_robot[2] < list_joint_values[2]:
+                pos_robot[2] += 0.08
 
-                elif list_joint_values[1] > pos_robot[1] + WRIST_LENGTH and round(list_joint_values[1] - (pos_robot[1] + WRIST_LENGTH), 3) > 0.02:
-                    print ("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB")
-                    arm_actions.set_arm_joint_values(pos_robot, 1)
-                list_joint_values[1] -= 0.02
+            arm_actions.set_arm_joint_values(pos_robot, 1)
 
             if rospy.get_time()-timer >= 20:
-                arm_actions.set_arm_joint_values(initial_position, 1)
                 return False
-            rospy.sleep(0.1)
+
+            rospy.sleep(1)
+
+        return True
+        # incr = (t-part_world_tf_time) * 0.2 if part_world_position[1] - camera_pos[1] < 0 else 0
+
+        # found_piece = True
+        # list_joint_values[1] -= WRIST_LENGTH
+
+        # dist = part_world_position[1] - pos_robot[1]
+        # timer = rospy.get_time()
+
+        # while not global_vars.gripper_state.attached:
+            
+        #     print (pos_robot[1] + WRIST_LENGTH, list_joint_values[1], incr, dist,round(list_joint_values[1] - (pos_robot[1] + WRIST_LENGTH), 3))#pos_robot[1], incr, round(abs(list_joint_values[1] - pos_robot[1]), 3))
+           
+        #     if (round(list_joint_values[1] - (pos_robot[1] + WRIST_LENGTH), 3) <= 0.009 and round(list_joint_values[1] - (pos_robot[1] + WRIST_LENGTH), 3) > 0) or not found_piece:
+        #         pos_robot[1] -= 0.02 
+        #         temp = list_joint_values[1]
+        #         list_joint_values[1] = pos_robot[1] - WRIST_LENGTH
+        #         # list_joint_values[1] = pos_robot[1] - WRIST_LENGTH
+        #         arm_actions.set_arm_joint_values(list_joint_values, 1)
+        #         gripper_actions.send_gripping_cmd(toGrip=True)
+        #         list_joint_values[1] = temp - 0.02
+        #         # list_joint_values[1] -= 0.02
+        #         print ("CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC")
+        #         found_piece = False
+        #     if found_piece:
+        #         if list_joint_values[1] < pos_robot[1] + WRIST_LENGTH and round(list_joint_values[1] - (pos_robot[1] + WRIST_LENGTH), 3) < 0:
+        #             print ("AAAAAAAAAAAAAAAAAAAAAAAAAAA")
+        #             t = rospy.get_time()
+        #             # dist = (pos_robot[1] + WRIST_LENGTH) - list_joint_values[1]
+        #             # pos_robot[1] -= 0.4+dist
+        #             incr = ((t-part_world_tf_time) * 0.2) - dist
+        #             pos_robot[1] -= 0.2+incr
+
+        #             arm_actions.set_arm_joint_values(pos_robot, 1)
+        #             found_piece = False
+
+        #         elif list_joint_values[1] > pos_robot[1] + WRIST_LENGTH and round(list_joint_values[1] - (pos_robot[1] + WRIST_LENGTH), 3) > 0.02:
+        #             print ("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB")
+        #             arm_actions.set_arm_joint_values(pos_robot, 1)
+        #         list_joint_values[1] -= 0.02
+
+        #     if rospy.get_time()-timer >= 20:
+        #         arm_actions.set_arm_joint_values(initial_position, 1)
+        #         return False
+        #     rospy.sleep(0.1)
         
-        rospy.sleep(1)
+        # rospy.sleep(1)
 
         return True
 
@@ -639,7 +670,7 @@ class ExecutePart:
             else:
                 return True
 
-    def move_wait_above_part(self, part_world_position, part_world_orientation, part_type, solver_type=arm_actions.SolverType.BIN, a_bit_above_value=0.015, time_to_execute_action=3):
+    def move_wait_above_part(self, part_world_position, part_world_orientation, part_type, solver_type=arm_actions.SolverType.BIN, a_bit_above_value=0.015, time_to_execute_action=1):
         rospy.loginfo("[ExecutePart]: move_wait_above_part: "+ str(part_world_position))
         list_joint_values = arm_actions.go_to_position_a_bit_above_part(
             world_position=part_world_position,
@@ -706,7 +737,7 @@ class ExecutePart:
             else:
                 return True
 
-    def deposit_at_tray(self, desired_part_pose, part_type, tray_id, force_check_piece=False, force_grp_sts=True):
+    def deposit_at_tray(self, desired_part_pose, part_type, tray_id, force_check_piece=False, force_grp_sts=True, time_to_execute_action=1):
         # calculate position of the part at tray
         solver_type = arm_actions.SolverType.AGV1 if tray_id == 1 else arm_actions.SolverType.AGV2
         part_position_at_tray, part_orientation_at_tray  = calculate_order_position(desired_part_pose, tray_id)
@@ -726,7 +757,8 @@ class ExecutePart:
             success = self.move_wait_above_part(part_position_at_tray, 
                                                 part_orientation_at_tray, 
                                                 part_type,
-                                                solver_type=solver_type)
+                                                solver_type=solver_type,
+                                                time_to_execute_action=time_to_execute_action)
             if not success: 
                 attempt +=1           
                 rospy.loginfo("[ExecutePart]: step7 failed. attempt#" + str(attempt))
