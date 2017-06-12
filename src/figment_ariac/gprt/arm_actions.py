@@ -9,6 +9,7 @@ import rospy
 import utils
 import global_vars
 import math
+import sys
 
 from constants import *
 from trajectory_msgs.msg import JointTrajectory
@@ -83,7 +84,7 @@ def go_to_bin_front(bin_id):
     set_arm_joint_values(STATIC_POSITIONS[bin_id], 1)
 
 
-def go_to_position_a_bit_above_part(world_position, world_orientation, part_type, time_to_execute_action, solver_type, a_bit_above_value=0.015, ignore_height=False):
+def go_to_position_a_bit_above_part(world_position, world_orientation, part_type, time_to_execute_action, solver_type, a_bit_above_value=0.015, ignore_height=False, adjust=False):
     """
         Move the arm to a position a little bit above the part.
 
@@ -105,10 +106,10 @@ def go_to_position_a_bit_above_part(world_position, world_orientation, part_type
             world_position_above_part, world_orientation, part_type, ignore_height)
     elif solver_type == SolverType.AGV1:
         angles = depositOnTray1(
-            world_position_above_part, world_orientation, part_type)
+            world_position_above_part, world_orientation, part_type, adjust=adjust)
     elif solver_type == SolverType.AGV2:
         angles = depositOnTray2(
-            world_position_above_part, world_orientation, part_type)
+            world_position_above_part, world_orientation, part_type, adjust=adjust)
     elif solver_type == SolverType.BELT:
         angles = solverBelt(
             world_position_above_part, world_orientation, part_type)
