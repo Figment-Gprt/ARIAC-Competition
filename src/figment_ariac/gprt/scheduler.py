@@ -262,7 +262,7 @@ class Scheduler:
             elif "bin" in init_id.unit_id:
                 rospy.loginfo("[Scheduler]: PART " + working_part.part_type + " AVAILABLE AT BIN")
                 pick_piece = PickPiece(PickPlaces.ANY_BIN, None, None)
-                break
+                # break Without breaking herethe for loop will attemp to find parts from the belt
         
         
         if pick_piece is not None:
