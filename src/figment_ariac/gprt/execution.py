@@ -990,6 +990,7 @@ class ExecutePart:
     def execute(self):
         # check where the part is, bin or belt
         part_origin = self.partPlan.pick_piece.origin.value
+        self.partPlan.part.set_time_started_if_not_already(rospy.Time.now())
         success = False
         # if part is on the bin:
         if "bin" in part_origin:
