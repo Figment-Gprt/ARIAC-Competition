@@ -253,9 +253,9 @@ class Scheduler:
             # part will be spawned at belt
             if init_id.unit_id == "belt":
                 # checking if part is available at belt
-                cam_id, part_id = global_vars.tf_manager.find_part_name(part_name=working_part.part_type, dad=ORIGN_CAMERA['belt']+"_frame")
+                cam_id, part_id = global_vars.tf_manager.find_part_name(part_name=working_part.part_type, sub_dad=ORIGN_CAMERA['belt']+"_frame")
                 if len(cam_id) > 0 and len(part_id) > 0:
-                    rospy.loginfo("[Scheduler]: PART " + part_id + " AVAILABLE AT BELT")
+                    rospy.loginfo("[Scheduler]: PART: {} CAMID: {} AVAILABLE AT BELT".format(part_id, cam_id))
                     pick_piece = PickPiece(PickPlaces.BELT, None, None)
                     break
 
