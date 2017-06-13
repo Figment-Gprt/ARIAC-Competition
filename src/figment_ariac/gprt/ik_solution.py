@@ -1,4 +1,4 @@
-from math import pi, atan2, sqrt
+from math import pi, atan2, sqrt, sin, cos
 from trianglesolver import solve, degree
 from constants import *
 import rospy
@@ -126,6 +126,9 @@ def solverBelt(pos, rot, object_type):
 
 	return angles
 
+def point_pos(x0, y0, d, theta_rad):    
+    return x0 + d*cos(theta_rad), y0 + d*sin(theta_rad)
+
 def depositOnTray1(pos, rot, object_type, ignore_height=False, adjust=False):
 	X_PIECE = pos[0]
 	Y_PIECE = pos[1]
@@ -141,14 +144,21 @@ def depositOnTray1(pos, rot, object_type, ignore_height=False, adjust=False):
 		
 
 	angle_var = (atan2(X_PIECE - X_BASE,Y_PIECE - Y_BASE) + atan2(WRIST_LENGTH,Y_PIECE - Y_BASE))
-	angle_shoulder_pan = 1.57 - angle_var
+	angle_shoulder_pan = 90*degree - angle_var
+
+	dx_base, dy_base = point_pos(X_BASE, Y_BASE, BASE_UPPER_DIST, 180*degree - angle_var)
+
 	
-	T1 = sqrt((Y_PIECE - Y_BASE)**2 + (X_PIECE - X_BASE)**2)
+	T1 = sqrt((Y_PIECE - dy_base)**2 + (X_PIECE - dx_base)**2)
 	T2 = T1 - H_WRIST
 
 	h_base_piece = Z_BASE - Z_PIECE
 	h_base_imaginary = (GRIPPER + WRIST_1_2) - h_base_piece
 	H1 = H_BASE - h_base_imaginary
+
+	rospy.loginfo(
+	'[depositOnTray1] dx_base:{}; dy_base={}; angle_var: {}; angle_var_rad: {}; T1: {}; T2: {}; h_base_piece {}; h_base_imaginary: {}; H1: {}'.format(
+	dx_base, dy_base, angle_var/degree, angle_var, T1, T2, h_base_piece, h_base_imaginary, H1))
 
 	_,_,T3,A1,B1,_ = solve(a=T2, b=H1, C=90*degree)
 

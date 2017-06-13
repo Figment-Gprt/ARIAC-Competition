@@ -189,8 +189,8 @@ class ExecBelt:
                         success = arm_actions.go_down_until_get_piece(world_position=part_world_position, 
                                                                 world_orientation=part_world_orientation, 
                                                                 part_type=part_type, 
-                                                                time=3, ignore_height=False, 
-                                                                distance=0.01, solver_type=arm_actions.SolverType.AGV1,
+                                                                time=10, ignore_height=False, 
+                                                                distance=0.005, solver_type=arm_actions.SolverType.AGV1,
                                                                 adjust=True)
                     
                         arm_actions.moveToolTipZY(0.3, incrementY, 1.4)
@@ -508,10 +508,11 @@ class ExecBin:
                     rospy.sleep(10)
                     if success:
                         rospy.loginfo("[ExecutePart][STEP7] - go_down_until_get_piece")
+                        #TODO DEBUG reduce time, but do test. it cannot be too fast
                         success = arm_actions.go_down_until_get_piece(world_position=part_world_position, 
                                                                 world_orientation=part_world_orientation, 
                                                                 part_type=part_type, 
-                                                                time=3, ignore_height=False, 
+                                                                time=30, ignore_height=False, 
                                                                 distance=0.1, solver_type=arm_actions.SolverType.AGV1,
                                                                 adjust=True)
                     
