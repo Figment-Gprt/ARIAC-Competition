@@ -120,5 +120,5 @@ template_files = [
     os.path.join(this_dir, '..', '..', '..', 'config', 'figment_gear_conf.yaml')
 ]
 
-KIT_TIMEOUT = rospy.Duration.from_sec(100) #ODO check what time would be best
+KIT_TIMEOUT = rospy.Duration.from_sec(400) #ODO check what time would be best
 
