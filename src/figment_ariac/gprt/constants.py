@@ -1,4 +1,5 @@
 import os
+import rospy
 
 STATIC_POSITIONS = {
     "bin5"	: [2.8797932658, -1.1661, -1.308996939, 3.1415926536, 3.1415926536, -1.5707963268, 0],
@@ -118,4 +119,6 @@ this_dir = os.path.abspath(os.path.dirname(__file__))
 template_files = [
     os.path.join(this_dir, '..', '..', '..', 'config', 'figment_gear_conf.yaml')
 ]
+
+KIT_TIMEOUT = rospy.Duration.from_sec(100) #ODO check what time would be best
 
