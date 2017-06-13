@@ -145,6 +145,29 @@ class Scheduler:
     def setFinished(self, status):
         self.finished = status
 
+    def check_time_out_and_complete(self):
+        for order in self.order_list:
+            for kit in order.kits:
+                time_now = rospy.Time.now()
+                if(kit.time_started is not -1):
+                    elapsed = time_now - kit.time_started
+                    rospy.loginfo("[Scheduler] Check Timeout - Kit: {kit}; Elapsed: {elapsed}".format())
+                    if elapsed > KIT_TIMEOUT:
+                        kit.state = order_utils.Status.DONE
+                        rospy.loginfo("[Scheduler] Kit completed with issues")
+                        rospy.loginfo("[Scheduler] Sending AGV")
+                        success_agv_cmd = execution.send_agv(kit, kit.plan.dest_tray_id)
+                        if(success_agv_cmd):
+                            part_plan.kit_plan.working_agv.release()
+                        else:
+                            rospy.loginfo("[Scheduler] Not Comp Implemented Yet - Could not send Agv Cmd")  
+                            attempt_max = 3
+                            attempt = 0
+                            while  attempt <  attempt_max and not success_agv_cmd:
+                                success_agv_cmd = execution.send_agv(kit, kit.plan.dest_tray_id)
+                            if(success_agv_cmd):
+                                kit.kit_plan.working_agv.release()       
+
     def execute(self):
         while not self.isFinished():
             part_plan = self.get_next_part_plan()
@@ -174,6 +197,29 @@ class Scheduler:
                                 success_agv_cmd = execution.send_agv(part_plan.part.parent_kit, part_plan.dest_tray_id)
                             if(success_agv_cmd):
                                 part_plan.kit_plan.working_agv.release()
+                else:
+                    
+                    if(part_plan.part.failed_count > 5):
+                        part_plan.part.set_done()  
+                        if part_plan.part.parent_kit.get_status() == order_utils.Status.DONE:
+                            rospy.loginfo("[Scheduler] Kit completed successfully")
+                            rospy.loginfo("[Scheduler] Sending AGV")
+                            success_agv_cmd = execution.send_agv(part_plan.part.parent_kit, part_plan.dest_tray_id)
+                            if(success_agv_cmd):
+                                part_plan.kit_plan.working_agv.release()
+                            else:
+                                rospy.loginfo("[Scheduler] Not Comp Implemented Yet - Could not send Agv Cmd")  
+                                attempt_max = 3
+                                attempt = 0
+                                while  attempt <  attempt_max and not success_agv_cmd:
+                                    success_agv_cmd = execution.send_agv(part_plan.part.parent_kit, part_plan.dest_tray_id)
+                                if(success_agv_cmd):
+                                    part_plan.kit_plan.working_agv.release()  
+                    else:
+                        part_plan.part.failed_count+=1 #TODO force a time before attempting this part again before a completly failure
+
+            self.check_time_out_and_complete()
+                        
 
 
 
@@ -253,16 +299,16 @@ class Scheduler:
             # part will be spawned at belt
             if init_id.unit_id == "belt":
                 # checking if part is available at belt
-                cam_id, part_id = global_vars.tf_manager.find_part_name(part_name=working_part.part_type, dad=ORIGN_CAMERA['belt']+"_frame")
+                cam_id, part_id = global_vars.tf_manager.find_part_name(part_name=working_part.part_type, sub_dad=ORIGN_CAMERA['belt']+"_frame")
                 if len(cam_id) > 0 and len(part_id) > 0:
-                    rospy.loginfo("[Scheduler]: PART " + part_id + " AVAILABLE AT BELT")
+                    rospy.loginfo("[Scheduler]: PART: {} CAMID: {} AVAILABLE AT BELT".format(part_id, cam_id))
                     pick_piece = PickPiece(PickPlaces.BELT, None, None)
                     break
 
             elif "bin" in init_id.unit_id:
                 rospy.loginfo("[Scheduler]: PART " + working_part.part_type + " AVAILABLE AT BIN")
                 pick_piece = PickPiece(PickPlaces.ANY_BIN, None, None)
-                break
+                # break Without breaking herethe for loop will attemp to find parts from the belt
         
         
         if pick_piece is not None:

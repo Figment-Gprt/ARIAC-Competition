@@ -23,6 +23,7 @@ class Order:
     	self.append_kits(self.kits, ariac_order_msg.kits)
 
     	self.state = Status.INIT
+        self.time_started = -1
 
 
     def __str__(self):
@@ -95,6 +96,10 @@ class Order:
     		kit.reset()
     	self.state = Status.INIT
 
+    def set_time_started_if_not_already(self, time):
+        if(self.time_started is not -1):
+            self.time_started = time
+
 
 
 class Kit:
@@ -107,6 +112,8 @@ class Kit:
     	self.append_parts(self.parts, ariac_kit_msg.objects)
     	self.state = Status.INIT
         self.plan = None
+        self.failed_count = 0
+        self.time_started = -1
 
     def __str__(self):
 
@@ -169,6 +176,11 @@ class Kit:
     	self.state = Status.INIT
         self.plan = None #TODO check later
 
+    def set_time_started_if_not_already(self, time):
+        if(self.time_started is not -1):
+            self.time_started = time
+            self.parent_order.set_time_started_if_not_already(time)
+
 
 class Part:
 
@@ -179,6 +191,8 @@ class Part:
     	self.desired_pose = ariac_kitObject_msg.pose
     	self.state = Status.INIT
         self.plan = None
+        self.failed_count = 0
+        self.time_started = -1
 
 
     def __str__(self):
@@ -209,6 +223,12 @@ class Part:
     def set_done(self):
         self.state = Status.DONE
         self.parent_kit.process_part_done(self)
+
+    def set_time_started_if_not_already(self, time):
+        if(self.time_started is not -1):
+            self.time_started = time
+            self.parent_kit.set_time_started_if_not_already(time)
+
 
 
 

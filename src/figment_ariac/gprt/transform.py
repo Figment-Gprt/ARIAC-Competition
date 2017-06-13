@@ -3,6 +3,7 @@ import tf as transf
 import math
 import numpy
 from copy import deepcopy
+import hashlib
 
 
 def transform_to_world(part_transform, camera_transform):
@@ -162,7 +163,7 @@ class Transform(object):
         return "translation:[" + str(",".join([str(v) for v in self.translation])) + "], rotation:[" + str(",".join([str(v) for v in self.rot])) + "]"
 
     def hash_value(self):
-        return hash(self.__str__())
+        return hashlib.sha224(self.__str__()).hexdigest()
 
     def transform_vec_in_place(self, point):
         # New function, testing.
@@ -179,4 +180,28 @@ class Transform(object):
 
         return self.rot_matrix.dot(xyz1)
 
-    
+
+
+
+# from transform import *
+# father: logical_camera_agv_1_frame; child: logical_camera_agv_1_gear_part_7_frame
+# father: world; child: logical_camera_agv_1_frame
+# translation:[0.746758806387,-0.00503701637988,0.101087234161], rotation:[0.00905606441507,-0.708537479154,-0.00372872092838,0.705605218923]
+# translation:[0.3,3.15,1.5], rotation:[0.0,0.707108079859,0.0,0.707105482511]
+
+part_rot_quart = [0.0140612963397, -0.709402022327, -0.00735706574966, 0.704625378657]
+part_rot_euler = transf.transformations.euler_from_quaternion(part_rot_quart)
+part_translate = [0.746795254399,-0.00440293764398, 0.100420057159]
+
+
+camera_rot_quart = [0.0,0.707108079859,0.0,0.707105482511]
+camera_rot_euler = transf.transformations.euler_from_quaternion(camera_rot_quart)
+camera_translate = [0.3,3.15,1.5]
+
+part = Transform(part_translate, part_rot_quart)
+camera = Transform(camera_translate, camera_rot_quart)
+
+camera_matrix = transf.transformations.compose_matrix(scale=None, shear=None, angles=camera_rot_euler, translate=camera_translate, perspective=None)
+part_matrix = transf.transformations.compose_matrix(scale=None, shear=None, angles=part_rot_euler, translate=part_translate, perspective=None)
+
+
