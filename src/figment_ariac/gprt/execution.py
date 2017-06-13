@@ -560,7 +560,7 @@ class ExecBin:
                     angles_discard = STATIC_POSITIONS["disBelAgv1"]
                     solver = arm_actions.SolverType.AGV1
                 elif(self.part_plan.dest_tray_id == 2): 
-                    faulty_sensor_msg = global_vars.faulty_sensor1    
+                    faulty_sensor_msg = global_vars.faulty_sensor2    
                     sensor_name = "quality_control_sensor_2_frame"
                     angles_discard = STATIC_POSITIONS["disBelAgv2"]
                     solver = arm_actions.SolverType.AGV2
