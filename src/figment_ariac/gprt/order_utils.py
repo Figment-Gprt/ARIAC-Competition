@@ -23,7 +23,7 @@ class Order:
     	self.append_kits(self.kits, ariac_order_msg.kits)
 
     	self.state = Status.INIT
-        self.time_started = -1
+        self.time_started = None
 
 
     def __str__(self):
@@ -97,7 +97,8 @@ class Order:
     	self.state = Status.INIT
 
     def set_time_started_if_not_already(self, time):
-        if(self.time_started is not -1):
+        if(self.time_started is None):
+            rospy.loginfo("[Scheduler] Order: {}; Started at: {}".format(self, time))  
             self.time_started = time
 
 
@@ -113,7 +114,7 @@ class Kit:
     	self.state = Status.INIT
         self.plan = None
         self.failed_count = 0
-        self.time_started = -1
+        self.time_started = None
 
     def __str__(self):
 
@@ -177,7 +178,8 @@ class Kit:
         self.plan = None #TODO check later
 
     def set_time_started_if_not_already(self, time):
-        if(self.time_started is not -1):
+        if(self.time_started is None):
+            rospy.loginfo("[Scheduler] Kit: {}; Started at: {}".format(self, time))  
             self.time_started = time
             self.parent_order.set_time_started_if_not_already(time)
 
@@ -192,7 +194,7 @@ class Part:
     	self.state = Status.INIT
         self.plan = None
         self.failed_count = 0
-        self.time_started = -1
+        self.time_started = None
 
 
     def __str__(self):
@@ -225,7 +227,8 @@ class Part:
         self.parent_kit.process_part_done(self)
 
     def set_time_started_if_not_already(self, time):
-        if(self.time_started is not -1):
+        if(self.time_started is None):
+            rospy.loginfo("[Scheduler] Part: {}; Started at: {}".format(self, time))  
             self.time_started = time
             self.parent_kit.set_time_started_if_not_already(time)
 
