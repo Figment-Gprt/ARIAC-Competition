@@ -72,7 +72,7 @@ class ExecBelt:
             # STEP 2 - move to belt static position
             if(not jump and exec_step <= 2 and not self.exec_part.isInterupted()):
 
-                rospy.loginfo("\n\n[ExecutePart]: STEP 2 \n")
+                rospy.loginfo("\n\n[ExecuteBeltPart]: STEP 2 \n")
                 # step 1 - move to position in front of the piece
                 success = self.exec_part.move_wait_belt(part_world_position)
                 if not success:
@@ -558,11 +558,13 @@ class ExecBin:
                     faulty_sensor_msg = global_vars.faulty_sensor1
                     sensor_name = "quality_control_sensor_1_frame"
                     angles_discard = STATIC_POSITIONS["disBelAgv1"]
+                    angles_discard_back = STATIC_POSITIONS["disBelAgv1Back"]
                     solver = arm_actions.SolverType.AGV1
                 elif(self.part_plan.dest_tray_id == 2): 
                     faulty_sensor_msg = global_vars.faulty_sensor2    
                     sensor_name = "quality_control_sensor_2_frame"
                     angles_discard = STATIC_POSITIONS["disBelAgv2"]
+                    angles_discard_back = STATIC_POSITIONS["disBelAgv2Back"]
                     solver = arm_actions.SolverType.AGV2
                 else:
                     rospy.logerr("[ExecutePart]: step8 failed. We do not know what to do yet")
@@ -614,6 +616,14 @@ class ExecBin:
 
                     rospy.loginfo("[ExecutePart][STEP8] - discard pos") 
                     success = gripper_actions.send_gripping_cmd_and_wait(False)
+
+                    
+                    arm_actions.set_arm_joint_values(list_of_joint_values=angles_discard_back,
+                        time_to_execute_action=0.5)
+
+                    arm_actions.check_arm_joint_values_published(list_of_joint_values=angles_discard_back)
+
+
                     if(not success):
                         rospy.logerr("[ExecutePart]: step8 failed. We do not know what to do yet")
                         self.part_plan.part.reset()
@@ -682,6 +692,17 @@ class ExecutePart:
                 rospy.logerr("[ExecutePart]:move_wait_front_part - Gripper failed!")
                 return False
 
+        angles_start = arm_actions.go_to_belt_start()
+        # checking joint states
+        success = arm_actions.check_arm_joint_values_published(list_of_joint_values=angles_start,
+                                            accError=[0.009, 0.009, 0.009, 0.009,
+                                               0.015, 0.015, 0.009, 0.009, 0.1],
+                                            force_check_piece=False, force_grp_sts=True)
+        if not success:
+            rospy.logerr("[ExecutePart]: move_wait_belt failed")
+            return False
+
+        rospy.loginfo("[ExecutePart]:move_wait_belt moved to angles_start")
 
         angles = arm_actions.go_to_belt()
 
@@ -694,6 +715,7 @@ class ExecutePart:
             rospy.logerr("[ExecutePart]: move_wait_front_part failed")
             return False
         else:
+            rospy.loginfo("[ExecutePart]:move_wait_belt moved to angles_rest")
             if(force_check_piece):
                 grpOK = self.check_gripper(force_grp_sts)
                 if (not grpOK):

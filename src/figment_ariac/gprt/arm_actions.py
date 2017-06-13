@@ -50,11 +50,23 @@ def go_to_tray_position(tray_id, time=2):
 
     return STATIC_POSITIONS[tray_id]
 
+def go_to_belt_start():
+    """
+    Move to the static positon in front of the belt.
+
+    """    
+    rest_position_start = STATIC_POSITIONS["beltStart"]
+    #linear_arm_actuator_joint = part.y
+
+    set_arm_joint_values(rest_position_start, 1)
+    return rest_position_start
+
 def go_to_belt():
     """
     Move to the static positon in front of the belt.
 
-    """
+    """   
+
     rest_position = STATIC_POSITIONS["belt"]
     #linear_arm_actuator_joint = part.y
 
