@@ -133,7 +133,7 @@ class Scheduler:
 
         agv1 = WorkingAgv(1)    
         agv2 = WorkingAgv(2)
-        self.agvs = [agv1, agv2]
+        self.agvs = [agv2, agv1]
 
 
     def append_order(self, order):

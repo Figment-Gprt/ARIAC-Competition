@@ -93,7 +93,8 @@ def tf(toFrame, fromFrame):
 
 # Returns pos.translation[x, y, z] || pos.rotation[x, y, z, w]
 def getUpperArmPose():
-    transforms = global_vars.tf_manager.get_transform_list('upper_arm_link', 'world')
+    time = rospy.get_time()
+    transforms = global_vars.tf_manager.get_transform_list('upper_arm_link', 'world', time)
     r = transform.transform_list_to_world(transforms)
     if r:
         return r
@@ -103,7 +104,8 @@ def getUpperArmPose():
 
 
 def getForeArmPos():
-    transforms = global_vars.tf_manager.get_transform_list('forearm_link', 'world')
+    time = rospy.get_time()
+    transforms = global_vars.tf_manager.get_transform_list('forearm_link', 'world', time)
     r = transform.transform_list_to_world(transforms)
     if r:
         return r
@@ -124,7 +126,8 @@ def getForeArmTipPos():
 
 
 def getVacuumGripperPos():
-    transforms = global_vars.tf_manager.get_transform_list('tool0', 'world')
+    time = rospy.get_time()
+    transforms = global_vars.tf_manager.get_transform_list('tool0', 'world', time)
     r = transform.transform_list_to_world(transforms)
     if r:
         return r
@@ -143,13 +146,6 @@ def computeZDistance(pos1, pos2):
 def computeYDistance(pos1, pos2):
     return pos1[1] - pos2[1]
 
-    t = Transform(var_pos, var_rot)
-    point = Vec3(0, 0, distance)
-    t.transform_vec_in_place(point)
-    retP = deepcopy(pos)
-    retP.translation.x = point.x
-    retP.translation.y = point.y
-    retP.translation.z = point.z
 
 def computeYZDistance(pos1, pos2):
     dist = math.hypot(pos2[1] - pos1[1],

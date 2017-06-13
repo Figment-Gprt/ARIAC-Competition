@@ -6,6 +6,7 @@ from tf2_msgs.msg import TFMessage
 from transform import Transform
 
 
+
 class TfManager:
     """
         This class manages all transform objects published on the /tf topic
@@ -110,15 +111,43 @@ class TfManager:
         return t
 
 
-    def get_transform_list(self, target, base):
+    def get_tf_object(self, father, child):
+        t = None
+        if father in self.transforms_dynamic:
+            # rospy.loginfo(father + " is in transforms_dynamic")
+            if child in self.transforms_dynamic[father]:
+                # rospy.loginfo(child + " is in transforms_dynamic[" + father + "]")
+                t = self.transforms_dynamic[father][child]
+
+        if t is None:
+            if father in self.transforms_static:
+                # rospy.loginfo(father + " is in transforms_static")
+                if child in self.transforms_static[father]:
+                    # rospy.loginfo(child + " is in transforms_static[" + father + "]")
+                    t = self.transforms_static[father][child]
+
+        return t
+
+
+
+    def get_transform_list(self, target, base, time):
         _list = self.graph.find_path(target, base)
         transform_list = []
         father = ""
         child = _list.pop(0)
         while len(_list) > 0:
             father = _list.pop(0)
-            transform_list.append(self.get_transform(father, child))
-            child = father
+            tf_object = self.get_tf_object(father, child)
+            if 'secs' in tf_object:
+                # rospy.loginfo("[tf_manager] tf[" + father + "][" + child + "][secs] = " + str(tf_object['secs']) + " expected time = " + str(time) )
+                if tf_object['secs'] >= time:
+                    transform_list.append(tf_object['transform'])
+                    child = father
+                else:
+                    _list.insert(0, father)
+            else:
+                transform_list.append(tf_object['transform'])
+                child = father  
 
         #rospy.loginfo("[TfManager]: Transforms list: " + str(transform_list))
         return transform_list
