@@ -117,6 +117,7 @@ class TfManager:
         child = _list.pop(0)
         while len(_list) > 0:
             father = _list.pop(0)
+            print ("father: " + str(father) + "; child: " + str(child))
             transform_list.append(self.get_transform(father, child))
             child = father
 

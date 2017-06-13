@@ -504,7 +504,8 @@ class ExecBin:
                                             part_world_orientation=part_world_orientation, 
                                             part_type=part_type, solver_type=solver, 
                                             a_bit_above_value=0.1, 
-                                            time_to_execute_action=1)
+                                            time_to_execute_action=1,
+                                            adjust=True)
                     rospy.sleep(10)
                     if success:
                         rospy.loginfo("[ExecutePart][STEP7] - go_down_until_get_piece")
@@ -512,8 +513,8 @@ class ExecBin:
                         success = arm_actions.go_down_until_get_piece(world_position=part_world_position, 
                                                                 world_orientation=part_world_orientation, 
                                                                 part_type=part_type, 
-                                                                time=30, ignore_height=False, 
-                                                                distance=0.1, solver_type=arm_actions.SolverType.AGV1,
+                                                                time=3, ignore_height=False, 
+                                                                distance=0.01, solver_type=solver,
                                                                 adjust=True)
                     
                         arm_actions.moveToolTipZY(0.3, incrementY, 1.4)
