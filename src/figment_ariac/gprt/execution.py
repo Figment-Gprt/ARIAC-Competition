@@ -108,23 +108,12 @@ class ExecBelt:
                     self.part_plan.part.reset()
                     return False
 
-
                 exec_step = +1  # STEP 3 - DONE
 
 ###################       STEP 4       ###################################
 
-            # # STEP 4 - Move to rest position
-            # if(not jump and exec_step <= 4 and not self.exec_part.isInterupted()):
 
-            #     rospy.loginfo("\n\n[ExecuteBeltPart]: STEP 4 \n")
-            #     success = self.exec_part.move_wait_belt(part_world_position)
 
-            #     if not success:
-            #         rospy.loginfo("[ExecuteBeltPart]: step4 failed. Reseting")
-            #         self.part_plan.part.reset()
-            #         return False
-
-            #     exec_step =+1 #STEP  - DONE
 
 ###################       STEP 5       ##########################################                
             if(not jump and exec_step <= 5 and not self.exec_part.isInterupted()): #STEP 5 - Move To TRAY
@@ -573,7 +562,8 @@ class ExecBin:
                     angles_discard_back = STATIC_POSITIONS["disBelAgv2Back"]
                     solver = arm_actions.SolverType.AGV2
                 else:
-                    rospy.logerr("[ExecutePart]: step8 failed. We do not know what to do yet")
+                    rospy.logerr("\n\n\n[ExecutePart]: step8 failed. We do not know what to do yet")
+                    rospy.logerr("[ExecutePart]: step8 failed. part_plan: {}\n\n\n".format(part_plan))
                     self.part_plan.part.reset()
                     return False
 
@@ -631,7 +621,8 @@ class ExecBin:
 
 
                     if(not success):
-                        rospy.logerr("[ExecutePart]: step8 failed. We do not know what to do yet")
+                        rospy.logerr("\n\n\n[ExecutePart]: step8 failed. We do not know what to do yet")
+                        rospy.logerr("\n\n\n[ExecutePart]: send_gripping_cmd_and_wait(False) Failed\n\n\n")
                         self.part_plan.part.reset()
                         return False
 
