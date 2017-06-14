@@ -40,6 +40,9 @@ class ExecBelt:
                 desired_part_pose = self.part_plan.part.desired_pose
                 exec_step = +1  # STEP 0 - DONE
                 gripper_actions.send_gripping_cmd_and_wait(False)
+                to_flip = self.part_plan.to_flip
+                if to_flip:
+                    rospy.loginfo("\n\n[ExecBelt][ExecutePart]: STEP 0 : Part must be FLIPPED\n\n\n\n")
 
 ###################       STEP 1       ###################################
             if(not jump and exec_step <= 1 and not self.exec_part.isInterupted()):  # STEP 1 - Check Belt
@@ -91,6 +94,14 @@ class ExecBelt:
                 max_attempt = 3
                 attempt = 0
                 success = False
+
+                # if part is a pulley and should be flipped 
+                # we will get it at the tip of the part
+                if to_flip:
+                    part_world_position[0] -= 0.08
+                    # part_world_position[1] += 0.03
+
+
                 while(attempt < max_attempt and not success):
                     success = self.exec_part.move_towards_piece_on_belt(part_world_position,
                                                                         part_world_orientation,
@@ -113,6 +124,12 @@ class ExecBelt:
 ###################       STEP 4       ###################################
 
             if(not jump and exec_step <= 4 and not self.exec_part.isInterupted()): #STEP 4 - Move To TRAY
+                
+                # part must be flipped
+                if to_flip:
+                    self.exec_part.turn_pulley_yellow_bar(part_world_orientation)
+
+
                 rospy.loginfo("\n\n[ExecuteBeltPart]: STEP 4 \n")
                 success = self.exec_part.move_to_tray(tray_id)
                 # success = self.exec_part.move_wait_front_part(part_world_position)
@@ -997,6 +1014,115 @@ class ExecutePart:
         arm_actions.moveToolTip(0.2, 0, 0.3)
 
         return success
+
+    def turn_pulley_yellow_bar(self, part_world_orientation):
+        rospy.loginfo("[turn_pulley_yellow_bar] Turning pulley at yellow bar")
+        
+
+        rospy.loginfo("[turn_pulley_yellow_bar] Move to bin8")
+        angles = STATIC_POSITIONS["bin8"]
+        arm_actions.set_arm_joint_values(angles, 3)
+
+        rospy.loginfo("[turn_pulley_yellow_bar] Move Up 1")
+        angles = [2.62, 1.15, -1.80, 3.14, 3.34, -1.57, 0]
+        arm_actions.set_arm_joint_values(angles, 1)
+
+        arm_actions.check_arm_joint_values_published(list_of_joint_values=angles, 
+                                            force_check_piece=True, force_grp_sts=True)
+
+        rospy.loginfo("[turn_pulley_yellow_bar] Move Up 2")
+        angles = [2.62, 1.15, -2.18, 3.14, 3.34, 1.57, 0]
+        arm_actions.set_arm_joint_values(angles, 1)
+        
+        arm_actions.check_arm_joint_values_published(list_of_joint_values=angles, 
+                                                    force_check_piece=True, force_grp_sts=True)
+        
+
+        angles = [1.61, 1.15, -2.18, 3.14, 5.03, 1.57, 0]
+        arm_actions.set_arm_joint_values(angles, 1)
+        
+        arm_actions.check_arm_joint_values_published(list_of_joint_values=angles, 
+                                            force_check_piece=True, force_grp_sts=True)
+
+        angles = [1.44, 1.15, -1.79, 3.14, 5.03, 1.57, 0]
+        arm_actions.set_arm_joint_values(angles, 1)
+        rospy.loginfo("[turn_pulley_yellow_bar] Place 1")
+        arm_actions.check_arm_joint_values_published(list_of_joint_values=angles, 
+                                            force_check_piece=True, force_grp_sts=True)
+
+        
+        gripper_actions.send_gripping_cmd(toGrip=False)
+
+
+        angles = [1.50, 1.15, -1.81, 3.14, 5.03, 1.57, 0]
+        arm_actions.set_arm_joint_values(angles, 1)
+        rospy.loginfo("[turn_pulley_yellow_bar] Out 1")
+        arm_actions.check_arm_joint_values_published(list_of_joint_values=angles, 
+                                            force_check_piece=False, force_grp_sts=True)
+
+        angles = [1.75, 1.15, -2.19, 3.14, 5.03, 1.57, 0]
+        arm_actions.set_arm_joint_values(angles, 1)
+        rospy.loginfo("[turn_pulley_yellow_bar] Out 2")
+        arm_actions.check_arm_joint_values_published(list_of_joint_values=angles, 
+                                            force_check_piece=False, force_grp_sts=True)
+
+        angles = [1.00, 1.15, -1.90, 3.14, 5.03, -1.57, 0]
+        arm_actions.set_arm_joint_values(angles, 1)
+        rospy.loginfo("[turn_pulley_yellow_bar] Out 3")
+        arm_actions.check_arm_joint_values_published(list_of_joint_values=angles, 
+                                            force_check_piece=False, force_grp_sts=True)
+
+        angles = [1.00, 1.15, -1.90, 3.14, 5.03, -1.57, 0]
+        arm_actions.set_arm_joint_values(angles, 1)
+        rospy.loginfo("[turn_pulley_yellow_bar] Adjust 1")
+        arm_actions.check_arm_joint_values_published(list_of_joint_values=angles, 
+                                            force_check_piece=False, force_grp_sts=True)
+
+        angles = [0.50, 1.15, -1.50, 3.14, 5.60, -1.57, 0]
+        arm_actions.set_arm_joint_values(angles, 1)
+        rospy.loginfo("[turn_pulley_yellow_bar] Adjust 2")
+        arm_actions.check_arm_joint_values_published(list_of_joint_values=angles, 
+                                            force_check_piece=False, force_grp_sts=True)
+
+        #angles = [0.10, 1.18, -1.19, 3.14, 5.80, -1.57, 0]
+        #self.moveTo(angles, 4)
+        #teste = ActionSleep(3, "Take")
+        # teste.execute_action()
+
+        gripper_actions.send_gripping_cmd(toGrip=True)
+        angles = [-0.13, 1.18, -1.08, 3.14, 5.92, -1.57, 0]
+        arm_actions.set_arm_joint_values(angles, 4)
+        rospy.loginfo("[turn_pulley_yellow_bar] Take Test")
+
+        gripper_actions.wait_for_gripper(toGrip=True, max_wait=5, inc_sleep=0.005)
+        
+        angles = [0.11, 1.18, -1.24, 3.14, 5.68, -1.57, 1.57 - part_world_orientation[2]]
+        arm_actions.set_arm_joint_values(angles, 1)
+        rospy.loginfo("[turn_pulley_yellow_bar] Out with Pulley")
+
+        success = arm_actions.check_arm_joint_values_published(list_of_joint_values=angles, 
+                                        force_check_piece=True, force_grp_sts=True)
+        if success:
+
+            angles = [1.49, 1.18, -2.25, 3.14, 5.18, -1.57, 1.57 - part_world_orientation[2]]
+            arm_actions.set_arm_joint_values(angles, 1)
+            rospy.loginfo("[turn_pulley_yellow_bar] Adjust 1")
+            
+            success = arm_actions.check_arm_joint_values_published(list_of_joint_values=angles, 
+                                force_check_piece=True, force_grp_sts=True)
+
+
+            angles = [2.12, 1.18, -2.12, 3.14, 4.30, -1.57, 1.57 - part_world_orientation[2]]
+            arm_actions.set_arm_joint_values(angles, 1)
+            rospy.loginfo("[turn_pulley_yellow_bar] Adjust 2")
+
+            success = arm_actions.check_arm_joint_values_published(list_of_joint_values=angles, 
+                                force_check_piece=True, force_grp_sts=True)
+
+            return success
+
+        return False
+
 
     def execute_belt(self, part_origin):
 

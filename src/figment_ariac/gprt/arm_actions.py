@@ -361,3 +361,4 @@ def moveToolTipZY(incrementZ=0.3, incrementY=0.1, timeToGoal=0.2):
             list_of_joint_values=angles)
 
 
+
