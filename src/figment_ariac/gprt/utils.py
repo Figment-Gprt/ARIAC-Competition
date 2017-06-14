@@ -10,6 +10,7 @@ import math
 import numpy
 import transform
 
+from math import sin
 from copy import deepcopy
 from trianglesolver import solve, degree
 
@@ -174,6 +175,25 @@ def iscloseError(a, b, error):
     #return abs(a - b) <= 0.015
     return abs(a - b) <= error
 
+def checkPartOnTray(vet1, vet2, op):
+    diff0 = abs(vet1[0] - vet2[0])
+    diff1 = abs(vet1[1] - vet2[1])
+
+    if op == "ori":
+        diff2 = abs(sin(vet1[2]) - sin(-vet2[2]))
+
+    if op == "pos":
+        print (diff0, diff1)
+        if diff0 > 0.01 or diff1 > 0.01:
+            return True
+        else:
+            return False
+    else:
+        print (vet1[2], vet2[2], diff2)
+        if diff2 > 0.05:
+            return True
+        else:
+            return False
 
 def comparePosition(p1, p2, accError):
     l = min(len(p1), len(p2))
