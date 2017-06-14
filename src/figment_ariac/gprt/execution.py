@@ -609,6 +609,7 @@ class ExecBin:
 
                     rospy.loginfo("[ExecutePart][STEP8] - discard pos") 
                     success = gripper_actions.send_gripping_cmd_and_wait(False)
+                    rospy.loginfo("[ExecutePart][BIN][STEP8]  send_gripping_cmd_and_wait success: {}".format(success)) 
 
                     
                     arm_actions.set_arm_joint_values(list_of_joint_values=angles_discard_back,
@@ -620,6 +621,7 @@ class ExecBin:
                     if(not success):
                         rospy.logerr("\n\n\n[ExecutePart]: step8 failed. We do not know what to do yet")
                         rospy.logerr("\n\n\n[ExecutePart]: send_gripping_cmd_and_wait(False) Failed\n\n\n")
+                        
                         self.part_plan.part.reset()
                         return False
 
