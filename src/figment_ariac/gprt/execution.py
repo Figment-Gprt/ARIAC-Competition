@@ -860,7 +860,8 @@ class ExecutePart:
             # getting position and orientation from the part
             transforms_list = global_vars.tf_manager.get_transform_list(part_id, 'world', time)
             rospy.logerr("[find_part_any_bin]:" + str(transforms_list))
-            return transform.transform_list_to_world(transforms_list)
+            if(transforms_list is not None and len(transforms_list) > 0):
+                return transform.transform_list_to_world(transforms_list)
             
 
     def find_part_any_agvs(self, part_id):

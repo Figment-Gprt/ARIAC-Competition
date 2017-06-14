@@ -29,8 +29,13 @@ class TfManager:
         self.part_id_black_list.append(part_id)
 
     def get_piece_tf_time(self, father, child):
-        if len(father) > 0:
-            return self.transforms_dynamic[father][child]['secs']
+        t = None
+        if len(father) > 0:            
+            try:
+                t = self.transforms_dynamic[father][child]['secs']
+            except KeyError:
+                rospy.logerr("[get_transform]: deleted between dict accesses")
+        return t
 
     def find_part_name(self, part_name, dad=None, sub_dad=None):
         # 
