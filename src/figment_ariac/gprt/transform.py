@@ -34,6 +34,9 @@ def transform_list_to_world(transforms):
     return coordinates, angles
 
     """
+    # print "---------------- Transform Composed --------------"
+    # print transforms
+    # print "---------------- Transform Composed --------------"    
     lastTf = None
     resultTf = None
     while len(transforms) > 0:
