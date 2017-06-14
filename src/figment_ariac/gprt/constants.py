@@ -124,4 +124,8 @@ template_files = [
 ]
 
 KIT_TIMEOUT = rospy.Duration.from_sec(400) #ODO check what time would be best
+COMP_TIMEOUT = rospy.Duration.from_sec(480) #ODO check what time would be best
+
+PLAN_STEP_CNT = rospy.Duration.from_sec(5) #ODO check what time would be best
+MAX_PLAN_STEP_CNT = 6
 

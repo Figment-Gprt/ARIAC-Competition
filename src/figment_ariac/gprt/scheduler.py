@@ -127,6 +127,7 @@ class Scheduler:
         self.finished = False
         self.competition = competition
         self.configure_agvs()
+        self.start_time = None
 
     #[TODO] Are we sure to have always two?
     def configure_agvs(self):
@@ -145,16 +146,40 @@ class Scheduler:
     def setFinished(self, status):
         self.finished = status
 
+    # def check_time_out_and_complete(self):
+    #     rospy.loginfo("[Scheduler] Check Timeout - #Ordes: {}".format(len(self.order_list)))
+    #     for order in self.order_list:
+    #         for kit in order.kits:
+    #             time_now = rospy.Time.now()
+    #             rospy.loginfo("[Scheduler] Check Timeout - Kit: {}; Now: {}; Started:{}".format(kit, time_now, kit.time_started))
+    #             if(kit.time_started is not None):
+    #                 elapsed = time_now - kit.time_started
+    #                 rospy.loginfo("[Scheduler] Check Timeout - Kit: {}; Elapsed: {}; TO_TIMETOUT(s):{}".format(kit, elapsed, (KIT_TIMEOUT-elapsed).to_sec()))
+    #                 if elapsed > KIT_TIMEOUT:
+    #                     kit.state = order_utils.Status.DONE
+    #                     rospy.logerr("\n\n\n[Scheduler] Kit completed with issues")
+    #                     rospy.loginfo("[Scheduler] Sending AGV")
+    #                     success_agv_cmd = execution.send_agv(kit, kit.plan.dest_tray_id)
+    #                     if(success_agv_cmd):
+    #                         kit.plan.working_agv.release()
+    #                     else:
+    #                         rospy.loginfo("[Scheduler] Not Comp Implemented Yet - Could not send Agv Cmd")  
+    #                         attempt_max = 3
+    #                         attempt = 0
+    #                         while  attempt <  attempt_max and not success_agv_cmd:
+    #                             success_agv_cmd = execution.send_agv(kit, kit.plan.dest_tray_id)
+    #                         if(success_agv_cmd):
+    #                             kit.kit_plan.working_agv.release()      
+
     def check_time_out_and_complete(self):
         rospy.loginfo("[Scheduler] Check Timeout - #Ordes: {}".format(len(self.order_list)))
-        for order in self.order_list:
-            for kit in order.kits:
-                time_now = rospy.Time.now()
-                rospy.loginfo("[Scheduler] Check Timeout - Kit: {}; Now: {}; Started:{}".format(kit, time_now, kit.time_started))
-                if(kit.time_started is not None):
-                    elapsed = time_now - kit.time_started
-                    rospy.loginfo("[Scheduler] Check Timeout - Kit: {}; Elapsed: {}; TO_TIMETOUT(s):{}".format(kit, elapsed, (KIT_TIMEOUT-elapsed).to_sec()))
-                    if elapsed > KIT_TIMEOUT:
+        time_now = rospy.Time.now()
+        elapsed = time_now - self.start_time
+        if elapsed > COMP_TIMEOUT:     
+
+            for order in self.order_list:
+                for kit in order.kits:                    
+                    if(kit.time_started is not None):
                         kit.state = order_utils.Status.DONE
                         rospy.logerr("\n\n\n[Scheduler] Kit completed with issues")
                         rospy.loginfo("[Scheduler] Sending AGV")
@@ -168,9 +193,10 @@ class Scheduler:
                             while  attempt <  attempt_max and not success_agv_cmd:
                                 success_agv_cmd = execution.send_agv(kit, kit.plan.dest_tray_id)
                             if(success_agv_cmd):
-                                kit.kit_plan.working_agv.release()       
+                                kit.kit_plan.working_agv.release()  
 
     def execute(self):
+        self.start_time = rospy.Time.now()
         while not self.isFinished():
             part_plan = self.get_next_part_plan()
             if part_plan is None:
@@ -201,7 +227,7 @@ class Scheduler:
                                 part_plan.kit_plan.working_agv.release()
                 else:
                     
-                    if(part_plan.part.failed_count > 5):
+                    if(part_plan.part.failed_count > 9):
                         part_plan.part.set_done()  
                         if part_plan.part.parent_kit.get_status() == order_utils.Status.DONE:
                             rospy.loginfo("[Scheduler] Kit completed successfully")
@@ -279,10 +305,28 @@ class Scheduler:
 
         parent_kit = working_part.parent_kit
 
+        if(working_part.time_last_chk_attempt_plan is None):
+            working_part.time_last_chk_attempt_plan = rospy.Time.now()
+            working_part.planning_attempts = 1
+        
+        elapsed_from_last = rospy.Time.now() - working_part.time_last_chk_attempt_plan
+        if(elapsed_from_last > PLAN_STEP_CNT):
+            working_part.planning_attempts += 1  
+            working_part.time_last_chk_attempt_plan = rospy.Time.now()
+
+        if(working_part.planning_attempts > MAX_PLAN_STEP_CNT):
+
+            pp = PartPlan(part = working_part, 
+                            pick_piece=PickPiece(PickPlaces.FAIL, None, None), kit_plan =  parent_kit.plan)
+            
+            return pp
+
+
         kit_plan =  parent_kit.plan
         if(kit_plan is None):
             rospy.loginfo("[Scheduler] get_plan_for_part computing kit_plan: " + str(working_part))    
             kit_plan = self.get_plan_for_kit(parent_kit)
+
             if(kit_plan is None):
                 rospy.logerr("[Scheduler] get_plan_for_part kit_plan still None")
                 return

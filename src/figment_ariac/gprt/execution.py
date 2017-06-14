@@ -1025,6 +1025,10 @@ class ExecutePart:
         elif "belt" in part_origin:
             success = self.execute_belt(part_origin)
 
+                # if part is on the tray
+        elif "fail" in part_origin:
+            success = self.partPlan.part.set_done()
+
         # if part is on the tray
         elif "tray" in part_origin:
             pass

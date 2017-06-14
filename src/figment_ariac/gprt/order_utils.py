@@ -65,6 +65,7 @@ class Order:
 
     def set_done(self):
         self.state = Status.DONE
+        return True
 
     def get_kit_by_id(self, kit_id):
         idx = 0
@@ -159,6 +160,7 @@ class Kit:
     def set_done(self):
         self.state = Status.DONE
         self.parent_order.process_kit_done(self)
+        return True
 
     def deep_check_done(self):
         for part in self.parts:
@@ -195,6 +197,8 @@ class Part:
         self.plan = None
         self.failed_count = 0
         self.time_started = None
+        self.planning_attempts = 0
+        self.time_last_chk_attempt_plan = None
 
 
     def __str__(self):
@@ -225,6 +229,7 @@ class Part:
     def set_done(self):
         self.state = Status.DONE
         self.parent_kit.process_part_done(self)
+        return True
 
     def set_time_started_if_not_already(self, time):
         if(self.time_started is None):
