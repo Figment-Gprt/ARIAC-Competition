@@ -150,8 +150,8 @@ class TfManager:
         while len(_list) > 0:
             father = _list.pop(0)
             tf_object = self.get_tf_object(father, child)
-            if(tf_object is not None) and time is not None:
-                if 'secs' in tf_object:
+            if(tf_object is not None):
+                if 'secs' in tf_object and time is not None:
                     # rospy.loginfo("[tf_manager] tf[" + father + "][" + child + "][secs] = " + str(tf_object['secs']) + " expected time = " + str(time) )
                     if tf_object['secs'] >= time or tf_object['dirty']:
                         transform_list.append(tf_object)
