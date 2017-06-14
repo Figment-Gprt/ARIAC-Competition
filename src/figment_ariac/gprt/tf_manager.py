@@ -148,7 +148,7 @@ class TfManager:
             if(tf_object is not None):
                 if 'secs' in tf_object:
                     # rospy.loginfo("[tf_manager] tf[" + father + "][" + child + "][secs] = " + str(tf_object['secs']) + " expected time = " + str(time) )
-                    if tf_object['secs'] >= time:
+                    if tf_object['secs'] >= time or tf_object['dirty']:
                         transform_list.append(tf_object['transform'])
                         child = father
                     else:
@@ -187,7 +187,8 @@ class TfManager:
                 self.transforms_dynamic[frame.header.frame_id][frame.child_frame_id] = {
                     'hash': transform.hash_value(),
                     'transform': transform,
-                    'secs' : frame.header.stamp.secs
+                    'secs' : frame.header.stamp.secs,
+                    'dirty' : False
 
                 }
                 self.graph.addNode(frame.child_frame_id)
@@ -198,7 +199,8 @@ class TfManager:
                 self.transforms_dynamic[frame.header.frame_id][frame.child_frame_id] = {
                     'hash': transform.hash_value(),
                     'transform': transform,
-                    'secs' : frame.header.stamp.secs
+                    'secs' : frame.header.stamp.secs,
+                    'dirty' : False
 
                 }
 
@@ -211,7 +213,9 @@ class TfManager:
 
         for k in self.transforms_dynamic.keys():
             for j in self.transforms_dynamic[k].keys():
-                if newestSec - self.transforms_dynamic[k][j]['secs'] > self.timeBuffer:
+                if newestSec - self.transforms_dynamic[k][j]['secs'] > self.timeBuffer and not self.transforms_dynamic[k][j]['dirty']:
+                    self.transforms_dynamic[k][j]['dirty']  = True
+                elif newestSec - self.transforms_dynamic[k][j]['secs'] > self.timeBuffer and self.transforms_dynamic[k][j]['dirty']:
                     del self.transforms_dynamic[k][j]
                     self.graph.delNode(j)
                     
