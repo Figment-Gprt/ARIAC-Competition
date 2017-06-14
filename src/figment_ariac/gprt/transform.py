@@ -44,9 +44,9 @@ def transform_list_to_world(transforms):
         else:
             resultTf = lastTf.get_transform_matrix().dot(resultTf)
 
-    print "---------------- Matrix Composed --------------"
-    print resultTf
-    print "---------------- Matrix Composed --------------"
+    # print "---------------- Matrix Composed --------------"
+    # print resultTf
+    # print "---------------- Matrix Composed --------------"
     scale, shear, angles, translate, perspective = transf.transformations.decompose_matrix(
         resultTf)
     # print "---------------- Translation and rotation --------------"

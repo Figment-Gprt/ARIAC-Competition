@@ -210,7 +210,7 @@ def check_arm_joint_values_published(list_of_joint_values=None, static_position_
     final_joint_values = list_of_joint_values if list_of_joint_values is not None else STATIC_POSITIONS[static_position_key]
 
     rospy.loginfo("[check_arm_joint_values_published]: final_joint_values:" + str(final_joint_values))
-    inc_sleep = 0.1
+    inc_sleep = 0.05
     slept = 0
     result = False
     grpOK = True

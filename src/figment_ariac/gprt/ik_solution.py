@@ -207,7 +207,7 @@ def depositOnTray2(pos, rot, object_type, ignore_height=False, adjust=False):
     H1 = H_BASE - h_base_imaginary
 
     rospy.loginfo(
-    '[depositOnTray1] dx_base:{}; dy_base={}; angle_var: {}; angle_var_rad: {}; T1: {}; T2: {}; h_base_piece {}; h_base_imaginary: {}; H1: {}'.format(
+    '[depositOnTray] dx_base:{}; dy_base={}; angle_var: {}; angle_var_rad: {}; T1: {}; T2: {}; h_base_piece {}; h_base_imaginary: {}; H1: {}'.format(
     dx_base, dy_base, angle_var/degree, angle_var, T1, T2, h_base_piece, h_base_imaginary, H1))
 
     _,_,T3,A1,B1,_ = solve(a=T2, b=H1, C=90*degree)

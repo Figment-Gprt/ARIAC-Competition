@@ -339,14 +339,14 @@ class ExecBin:
                 exec_step =+1 #STEP 0 - DONE
                 to_flip = self.part_plan.to_flip
                 if to_flip:
-                    rospy.loginfo("\n\n[ExecutePart]: STEP 0 : Part must be FLIPPED\n\n\n\n")
+                    rospy.loginfo("\n\n[ExecBin][ExecutePart]: STEP 0 : Part must be FLIPPED\n\n\n\n")
 
 ###################       STEP 1       ##########################################
 
             if(not jump and exec_step <= 1 and not self.exec_part.isInterupted()): #STEP 1 - Check Any BIN
 
                 if part_origin == PickPlaces.ANY_BIN.value:
-                    rospy.loginfo("\n\n[ExecutePart]: STEP 1 \n")
+                    rospy.loginfo("\n\n[ExecBin][ExecutePart]: STEP 1 \n")
                     # step 0 - get available pose for a part on any bin
                     camera_id, part_id = global_vars.tf_manager.find_part_name(part_type)
                     # getting part id without the camera id
@@ -371,11 +371,11 @@ class ExecBin:
 
             if(not jump and exec_step <= 2 and not self.exec_part.isInterupted()): #STEP 2 - Check Any BIN                  
                 
-                rospy.loginfo("\n\n[ExecutePart]: STEP 2 \n")
+                rospy.loginfo("\n\n[ExecBin][ExecutePart]: STEP 2 \n")
                 # step 1 - move to position in front of the piece
                 success = self.exec_part.move_wait_front_part(part_world_position)
                 if not success:
-                    rospy.loginfo("[ExecutePart]: step2 failed. Reseting")
+                    rospy.loginfo("[ExecBin][ExecutePart]: step2 failed. Reseting")
                     self.part_plan.part.reset()
                     return False
 
@@ -385,7 +385,7 @@ class ExecBin:
 
             if(not jump and exec_step <= 3 and not self.exec_part.isInterupted()): #STEP 3 - move to position a bit above the part
 
-                rospy.loginfo("\n\n[ExecutePart]: STEP 3 \n")
+                rospy.loginfo("\n\n[ExecBin][ExecutePart]: STEP 3 \n")
                 max_attempt = 3
                 attempt = 0
                 success = False
@@ -395,10 +395,10 @@ class ExecBin:
                                                         part_type)
                     if not success: 
                         attempt +=1           
-                        rospy.loginfo("[ExecutePart]: step3 failed. attempt#" + str(attempt))
+                        rospy.loginfo("[ExecBin][ExecutePart]: step3 failed. attempt#" + str(attempt))
 
                 if not success:                 
-                    rospy.loginfo("[ExecutePart]: step3 failed completly" + str(attempt))
+                    rospy.loginfo("[ExecBin][ExecutePart]: step3 failed completly" + str(attempt))
                     global_vars.tf_manager.add_part_id_to_bl(part_id)
                     self.part_plan.part.reset()
                     return False
@@ -409,7 +409,7 @@ class ExecBin:
 
             if(not jump and exec_step <= 4 and not self.exec_part.isInterupted()): #STEP 4 - move to position a bit above the part           
 
-                rospy.loginfo("\n\n[ExecutePart]: STEP 4 \n")
+                rospy.loginfo("\n\n[ExecBin][ExecutePart]: STEP 4 \n")
                 # 3 - go down until get the part
 
                 success = arm_actions.go_down_until_get_piece(world_position=part_world_position, 
@@ -418,7 +418,7 @@ class ExecBin:
                                         time=3, ignore_height=False, 
                                         distance=0.02, solver_type=arm_actions.SolverType.BIN)
                 if not success:
-                    rospy.loginfo("[ExecutePart]: step4 failed. Reseting")
+                    rospy.loginfo("[ExecBin][ExecutePart]: step4 failed. Reseting")
                     #TODO insert at blacklist
                     self.part_plan.part.reset()
                     return False
@@ -429,7 +429,7 @@ class ExecBin:
 
             if(not jump and exec_step <= 5 and not self.exec_part.isInterupted()): #STEP 5 - Going down to get part and flipping if needed
 
-                rospy.loginfo("\n\n[ExecutePart]: STEP 5 \n")
+                rospy.loginfo("\n\n[ExecBin][ExecutePart]: STEP 5 \n")
 
                 # part must be flipped
                 if to_flip:
@@ -441,7 +441,7 @@ class ExecBin:
                 
 
                 if not success:
-                    rospy.loginfo("[ExecutePart]: step failed. Reseting")
+                    rospy.loginfo("[ExecBin][ExecutePart]: step failed. Reseting")
                     # check what to do here
                     self.part_plan.part.reset()
                     return False
@@ -450,11 +450,11 @@ class ExecBin:
 
 ###################       STEP 6       ##########################################                
             if(not jump and exec_step <= 6 and not self.exec_part.isInterupted()): #STEP 6 - Move To TRAY
-                rospy.loginfo("\n\n[ExecutePart]: STEP 6 \n")
+                rospy.loginfo("\n\n[ExecBin][ExecutePart]: STEP 6 \n")
                 success = self.exec_part.move_to_tray(tray_id)
                 # success = self.exec_part.move_wait_front_part(part_world_position)
                 if not success:
-                    rospy.loginfo("[ExecutePart]: step6 failed. Reseting")
+                    rospy.loginfo("[ExecBin][ExecutePart]: step6 failed. Reseting")
                     self.part_plan.part.reset()
                     return False
 
@@ -464,7 +464,7 @@ class ExecBin:
 ###################       STEP 7       ##########################################  
 #STEP 7 - Put Part at tray              
             if(not jump and exec_step <= 7 and not self.exec_part.isInterupted()): 
-                rospy.loginfo("\n\n[ExecutePart]: STEP 7 \n")
+                rospy.loginfo("\n\n[ExecBin][ExecutePart]: STEP 7 \n")
                 
                 if(self.part_plan.dest_tray_id == 1):
                     camera_name = AGVS_CAMERA["agv1"]
@@ -474,11 +474,14 @@ class ExecBin:
                     camera_name = AGVS_CAMERA["agv2"]
                     solver = arm_actions.SolverType.AGV2
                     incrementY=0.1
+                rospy.loginfo("\n\n[ExecBin][ExecutePart]: STEP 7 - deposit_at_tray \n")
                 success = self.exec_part.deposit_at_tray(desired_part_pose=desired_part_pose, part_type=part_type, tray_id=tray_id, force_check_piece=True, time_to_execute_action=1)
+                rospy.loginfo("\n\n[ExecBin][ExecutePart]: STEP 7 - deposit_at_tray sucess: {} \n".format(success))
+
 
                 if not success:
-                    rospy.loginfo("[ExecutePart]: step7 failed. Reseting")
-                    rospy.loginfo("[ExecutePart][STEP7] - Move tool tip up")
+                    rospy.loginfo("[ExecBin][ExecutePart]: step7 failed. Reseting")
+                    rospy.loginfo("[ExecBin][ExecutePart][STEP7] - Move tool tip up")
                     arm_actions.moveToolTipZY(incrementZ=0.2, incrementY=incrementY, timeToGoal=1.2)
 
                     # waiting tf_manager update
@@ -496,7 +499,7 @@ class ExecBin:
                         # rospy.sleep(10)
                         if not success:
                             #TODO MOVE UP A BIT
-                            rospy.logerr("[ExecutePart]: step7 failed. Could not get back to AGV")
+                            rospy.logerr("[ExecBin][ExecutePart]: step7 failed. Could not get back to AGV")
                         self.part_plan.part.reset()
                         return False    
                     rospy.sleep(1)
@@ -533,7 +536,7 @@ class ExecBin:
                                                                       distance=0.005, solver_type=solver,
                                                                       adjust=True)
 
-                        arm_actions.moveToolTipZY(0.3, incrementY, 1.4)
+                        arm_actions.moveToolTipZY(0.3, incrementY, 0.1)
 
                     rospy.logerr("........................................................................")
                     if success :
@@ -544,15 +547,17 @@ class ExecBin:
                     else:
                         rospy.logerr("[ExecutePart]: step7 failed. We do not know what to do yet")
                         exec_step =+1 #STEP  - DONE
-                else:                    
+                else:  
+                    rospy.loginfo("\n\n[ExecBin][ExecutePart]: STEP 7 - moveToolTipZY \n")                  
                     arm_actions.moveToolTipZY(0.3, incrementY, 1.4)
+                    rospy.loginfo("\n\n[ExecBin][ExecutePart]: STEP 7 - moveToolTipZY called\n") 
                     exec_step =+1 #STEP  - DONE
 
 ###################       STEP 8       ##########################################  
 #STEP 8 - Check Falty Piece
 #TODO Check falty if the part dropped at tray as well(improve performance)
             if(not jump and exec_step <= 8 and not self.exec_part.isInterupted()): 
-                rospy.loginfo("\n\n[ExecutePart]: STEP 8 \n")
+                rospy.loginfo("\n\n[ExecBin][ExecutePart]: STEP 8 \n")
                 rospy.sleep(1)#If we dont sleep we may not find the faulty one on this iteration
                 if(self.part_plan.dest_tray_id == 1):
                     faulty_sensor_msg = global_vars.faulty_sensor1
@@ -854,7 +859,9 @@ class ExecutePart:
             time = rospy.get_time()
             # getting position and orientation from the part
             transforms_list = global_vars.tf_manager.get_transform_list(part_id, 'world', time)
+            rospy.logerr("[find_part_any_bin]:" + str(transforms_list))
             return transform.transform_list_to_world(transforms_list)
+            
 
     def find_part_any_agvs(self, part_id):
         rospy.loginfo("[ExecutePart]: part: "+ str(part_id))
@@ -918,7 +925,7 @@ class ExecutePart:
                                                 accError=accError)
             if not success: 
                 attempt +=1           
-                rospy.loginfo("[ExecutePart]: step7 failed. attempt#" + str(attempt))
+                rospy.loginfo("[ExecutePart]: failed. attempt#" + str(attempt))
 
         if not success:
             rospy.logerr("[ExecutePart]: deposit_at_tray failed")

@@ -12,7 +12,7 @@ class TfManager:
         This class manages all transform objects published on the /tf topic
     """
 
-    def __init__(self, timeBuffer=2.5):
+    def __init__(self, timeBuffer=5.5):
         self.transforms_dynamic = {}
         self.transforms_static = {}
         self.timeBuffer = timeBuffer
@@ -98,15 +98,21 @@ class TfManager:
         if father in self.transforms_dynamic:
             # rospy.loginfo(father + " is in transforms_dynamic")
             if child in self.transforms_dynamic[father]:
-                # rospy.loginfo(child + " is in transforms_dynamic[" + father + "]")
-                t = self.transforms_dynamic[father][child]['transform']
+                rospy.loginfo(child + " is in transforms_dynamic[" + father + "]")
+                try:
+                    t = self.transforms_dynamic[father][child]['transform']
+                except KeyError:
+                    rospy.logerr("[get_transform]: deleted between dict accesses")
 
         if t is None:
             if father in self.transforms_static:
                 # rospy.loginfo(father + " is in transforms_static")
                 if child in self.transforms_static[father]:
-                    # rospy.loginfo(child + " is in transforms_static[" + father + "]")
-                    t = self.transforms_static[father][child]['transform']                
+                    # rospy.loginfo(child + " is in transforms_static[" + father + "]")                     
+                    try:
+                        t = self.transforms_static[father][child]['transform']
+                    except KeyError:
+                        rospy.logerr("[get_transform]: deleted between dict accesses")            
 
         return t
 
@@ -115,9 +121,10 @@ class TfManager:
         t = None
         if father in self.transforms_dynamic:
             # rospy.loginfo(father + " is in transforms_dynamic")
-            if child in self.transforms_dynamic[father]:
+            father_list = self.transforms_dynamic[father]
+            if child in father_list:
                 # rospy.loginfo(child + " is in transforms_dynamic[" + father + "]")
-                t = self.transforms_dynamic[father][child]
+                t = father_list[child]
 
         if t is None:
             if father in self.transforms_static:
@@ -138,16 +145,17 @@ class TfManager:
         while len(_list) > 0:
             father = _list.pop(0)
             tf_object = self.get_tf_object(father, child)
-            if 'secs' in tf_object:
-                # rospy.loginfo("[tf_manager] tf[" + father + "][" + child + "][secs] = " + str(tf_object['secs']) + " expected time = " + str(time) )
-                if tf_object['secs'] >= time:
-                    transform_list.append(tf_object['transform'])
-                    child = father
+            if(tf_object is not None):
+                if 'secs' in tf_object:
+                    # rospy.loginfo("[tf_manager] tf[" + father + "][" + child + "][secs] = " + str(tf_object['secs']) + " expected time = " + str(time) )
+                    if tf_object['secs'] >= time:
+                        transform_list.append(tf_object['transform'])
+                        child = father
+                    else:
+                        _list.insert(0, father)
                 else:
-                    _list.insert(0, father)
-            else:
-                transform_list.append(tf_object['transform'])
-                child = father  
+                    transform_list.append(tf_object['transform'])
+                    child = father  
 
         #rospy.loginfo("[TfManager]: Transforms list: " + str(transform_list))
         return transform_list
