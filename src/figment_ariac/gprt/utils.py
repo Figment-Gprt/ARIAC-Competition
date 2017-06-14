@@ -30,6 +30,7 @@ class PickPlaces(Enum):
     BIN8    = "bin8"
     AGV1    = "agv1"
     AGV2    = "agv2"
+    FAIL    = "fail"
 
 def createJointTrajectory(angles, time):
     """
