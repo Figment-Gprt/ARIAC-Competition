@@ -92,7 +92,7 @@ class ExecBelt:
             if(not jump and exec_step <= 3 and not self.exec_part.isInterupted()):
 
                 rospy.loginfo("\n\n[ExecuteBeltPart]: STEP 3 \n")
-                max_attempt = 3
+                max_attempt = 1
                 attempt = 0
                 success = False
 
@@ -926,6 +926,9 @@ class ExecutePart:
         pos_robot[5] = list_joint_values[5]
         pos_robot[6] = list_joint_values[6]
 
+        if (pos_robot[1] < 0):
+            return False
+
         arm_actions.set_arm_joint_values(pos_robot, time_diff)
 
         back_position = pos_robot[2]
@@ -941,7 +944,7 @@ class ExecutePart:
 
             arm_actions.set_arm_joint_values(pos_robot, 1)
 
-            if rospy.get_time()-timer >= 20 or pos_robot[1] <= -2.0:
+            if rospy.get_time()-timer >= 20 or pos_robot[1] <= -1.5:
                 return False
 
             rospy.sleep(1)
