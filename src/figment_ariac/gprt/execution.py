@@ -51,8 +51,8 @@ class ExecBelt:
                     rospy.loginfo("\n\n[ExecuteBeltPart]: STEP 1 \n")
                     # step 0 - get available pose for a part on any bin
                     camera_name = ORIGN_CAMERA["belt"] + "_frame"
-                    camera_id, part_id = global_vars.tf_manager.find_part_name(
-                        part_type, dad=camera_name)
+                    camera_id, part_id = global_vars.tf_manager.find_part_name_in_belt(
+                        part_type, sub_dad=camera_name)
                     if(camera_id is None or part_id is None):
                         rospy.loginfo(
                             "[ExecuteBeltPart]:Failed. No available part {} found".format(part_type))
@@ -161,7 +161,7 @@ class ExecBelt:
                     arm_actions.moveToolTipZY(incrementZ=0.2, incrementY=incrementY, timeToGoal=0.3)
 
                     # waiting tf_manager update
-                    camera_id, part_id = global_vars.tf_manager.find_part_name(part_name=part_name, dad=camera_name)
+                    camera_id, part_id = global_vars.tf_manager.find_part_name_in_belt(part_name=part_name, sub_dad=camera_name)
                     rospy.loginfo("[ExecuteBeltPart]: DEBUG camera_id: {} ; part_id{}".format(camera_id, part_id))
                     if(len(camera_id) == 0 or len(part_id) == 0): #part not found
                         rospy.loginfo("[ExecutePart]: step5 failed [part not found]. Reseting")
