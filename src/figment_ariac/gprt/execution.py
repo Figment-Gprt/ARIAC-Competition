@@ -223,7 +223,8 @@ class ExecBelt:
                     angles_discard = STATIC_POSITIONS["disBelAgv2"]
                     solver = arm_actions.SolverType.AGV2
                 else:
-                    rospy.logerr("[ExecutePart]: step7 failed. We do not know what to do yet")
+                    rospy.logerr("\n\n\n[ExecutePart][BELT]: step7 failed. We do not know what to do yet")
+                    rospy.logerr("[ExecutePart][BELT]: step7 failed. part_plan: {}\n\n\n".format(part_plan))
                     self.part_plan.part.reset()
                     return False
 
