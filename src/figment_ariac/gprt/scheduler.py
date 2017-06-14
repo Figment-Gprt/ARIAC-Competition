@@ -18,6 +18,15 @@ class PickPiece:
         self.world_position     = world_position
         self.world_orientation  = world_orientation
 
+    def __str__(self):
+
+        return 'PickPiece origin:{}; world_position:{}; world_orientation:{}'.format(
+            self.origin, self.world_position, self.world_orientation)
+
+    def __repr__(self):
+        return 'PickPiece origin:{}; world_position:{}; world_orientation:{}'.format(
+            self.origin, self.world_position, self.world_orientation)
+
 class KitPlan:
 
     def __init__(self, kit, working_agv, list_part_plan):
