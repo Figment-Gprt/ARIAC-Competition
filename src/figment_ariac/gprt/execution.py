@@ -177,7 +177,7 @@ class ExecBelt:
                                             part_type=part_type, solver_type=solver, 
                                             a_bit_above_value=0.05, 
                                             time_to_execute_action=1)
-                    rospy.sleep(10)
+                    # rospy.sleep(10)
                     if success:
                         rospy.loginfo("[ExecutePart][STEP5] - go_down_until_get_piece")
                         success = arm_actions.go_down_until_get_piece(world_position=part_world_position, 
@@ -472,7 +472,7 @@ class ExecBin:
                     arm_actions.moveToolTipZY(incrementZ=0.2, incrementY=incrementY, timeToGoal=0.3)
 
                     # waiting tf_manager update
-                    rospy.sleep(5)
+                    rospy.sleep(2.5) #TODO changed from 5 to 2.5. Check if ok.
                     camera_id, part_id = global_vars.tf_manager.find_part_name(part_name=part_name, dad=camera_name)
                     rospy.loginfo("[ExecutePart]: DEBUG camera_id: {} ; part_id{}".format(camera_id, part_id))
                     if(len(camera_id) == 0 or len(part_id) == 0): #part not found
@@ -489,7 +489,7 @@ class ExecBin:
                             rospy.logerr("[ExecBin][ExecutePart]: step7 failed. Could not get back to AGV")
                         self.part_plan.part.reset()
                         return False    
-                    rospy.sleep(1)
+                    # rospy.sleep(1)
                     r = self.exec_part.find_part_any_agvs(part_id)#TODO any agv or a specific agv?
                     
                     
@@ -545,7 +545,7 @@ class ExecBin:
 #TODO Check falty if the part dropped at tray as well(improve performance)
             if(not jump and exec_step <= 8 and not self.exec_part.isInterupted()): 
                 rospy.loginfo("\n\n[ExecBin][ExecutePart]: STEP 8 \n")
-                rospy.sleep(1)#If we dont sleep we may not find the faulty one on this iteration
+                rospy.sleep(0.2)#If we dont sleep we may not find the faulty one on this iteration
                 if(self.part_plan.dest_tray_id == 1):
                     faulty_sensor_msg = global_vars.faulty_sensor1
                     sensor_name = "quality_control_sensor_1_frame"
@@ -591,7 +591,7 @@ class ExecBin:
                                                                   part_type=part_type,
                                                                   time=3, ignore_height=False,
                                                                   distance=0.01, solver_type=solver)
-                    rospy.sleep(5)  # TODO REMOVE
+                    # rospy.sleep(5)  # TODO REMOVE
 
                     rospy.loginfo("[ExecutePart][STEP8] - Move ToolTip Up")
 
@@ -775,7 +775,7 @@ class ExecutePart:
         pos_robot[0] = STATIC_POSITIONS["rest_position"][0]
         pos_robot[2] = back_position
         arm_actions.set_arm_joint_values(pos_robot, 0.5)
-        rospy.sleep(0.5)
+        rospy.sleep(0.5)#TODO can we change to check_angles?
 
         return True
 
@@ -838,7 +838,7 @@ class ExecutePart:
             time = rospy.get_time()
             # getting position and orientation from the part
             transforms_list = global_vars.tf_manager.get_transform_list(part_id, 'world', time)
-            rospy.logerr("[find_part_any_bin]:" + str(transforms_list))
+            # rospy.logerr("[find_part_any_bin]:" + str(transforms_list))
             if(transforms_list is not None and len(transforms_list) > 0):
                 time = transforms_list[0]['secs']
                 t, a = transform.transform_list_to_world(transforms_list)
@@ -1039,7 +1039,7 @@ def send_agv(kit, tray_id):
         send_agv = rospy.ServiceProxy(
             agvServiceName, AGVControl)
         success = send_agv(kit.kit_type)
-        rospy.sleep(1)
+        rospy.sleep(0.1)
         return success
     except rospy.ServiceException as exc:
         rospy.logerr("Failed to notify agv %s: %s" % (self.kit_type, exc))
