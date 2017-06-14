@@ -58,7 +58,7 @@ class ExecBelt:
                             "[ExecuteBeltPart]:Failed. No available part {} found".format(part_type))
                         self.part_plan.part.reset()
                         return False
-                    r = self.exec_part.find_part_any_bin(
+                    r = self.exec_part.find_part_any_belt(
                         camera_id, part_id, part_type)
 
                     if(r is None):
@@ -756,10 +756,11 @@ class ExecutePart:
         list_joint_values = solverBelt(part_world_position, part_world_orientation, part_type)
         initial_position = deepcopy(list_joint_values)
 
-        t = rospy.get_time()
+        now = rospy.get_time()
         timer = rospy.get_time()
-        time_diff = (t-part_world_tf_time)
-        print "a_time: " + str(t) + " trans_time: " + str(part_world_tf_time) + " diff = " + str(time_diff)
+        time_diff = (now-part_world_tf_time.to_sec())
+        print "a_time: " + str(now) + " trans_time: " + str(part_world_tf_time.to_sec()) + " diff = " + str(time_diff)
+        
         incr = time_diff * 0.2  # if time_diff > 2 else 0.2
 
         # t = rospy.get_time()
@@ -863,10 +864,23 @@ class ExecutePart:
 
             time = rospy.get_time()
             # getting position and orientation from the part
-            transforms_list = global_vars.tf_manager.get_transform_list(part_id, 'world', time)
+            transforms_list = global_vars.tf_manager.get_transform_list(part_id, 'world', time)#DEBUG
             # rospy.logerr("[find_part_any_bin]:" + str(transforms_list))
             if(transforms_list is not None and len(transforms_list) > 0):
                 time = transforms_list[0]['secs']
+                t, a = transform.transform_list_to_world(transforms_list)
+                return t, a, time
+
+    def find_part_any_belt(self, camera_id, part_id, part_type):
+        if len(camera_id) > 0:
+            rospy.loginfo("[ExecutePart][find_part_any_bin]: part: "+ str(part_id))
+
+
+            # getting position and orientation from the part
+            transforms_list = global_vars.tf_manager.get_transform_list(part_id, 'world')#DEBUG
+            # rospy.logerr("[find_part_any_bin]:" + str(transforms_list))
+            if(transforms_list is not None and len(transforms_list) > 0):
+                time = transforms_list[0]['time']
                 t, a = transform.transform_list_to_world(transforms_list)
                 return t, a, time
             
