@@ -12,7 +12,7 @@ class TfManager:
         This class manages all transform objects published on the /tf topic
     """
 
-    def __init__(self, timeBuffer=5):
+    def __init__(self, timeBuffer=2.5):
         self.transforms_dynamic = {}
         self.transforms_static = {}
         self.timeBuffer = timeBuffer

@@ -760,7 +760,7 @@ class ExecutePart:
         incr = time_diff * 0.2  # if time_diff > 2 else 0.2
 
         pos_robot[0] = list_joint_values[0] 
-        pos_robot[1] = list_joint_values[1] - incr + (WRIST_LENGTH*0.33)
+        pos_robot[1] = list_joint_values[1] - incr
         pos_robot[3] = list_joint_values[3] 
         pos_robot[4] = list_joint_values[4] 
         pos_robot[5] = list_joint_values[5]
