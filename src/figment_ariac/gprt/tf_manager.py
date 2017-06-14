@@ -12,7 +12,7 @@ class TfManager:
         This class manages all transform objects published on the /tf topic
     """
 
-    def __init__(self, timeBuffer=4.0):
+    def __init__(self, timeBuffer=5.5):
         self.transforms_dynamic = {}
         self.transforms_static = {}
         self.timeBuffer = timeBuffer
@@ -84,17 +84,11 @@ class TfManager:
         father = ""
         child = ""
         if dad is not None and dad in self.transforms_dynamic:
-            keys_list = self.transforms_dynamic[fdad].copy().keys()
-            print keys_list
-            if keys_list is not None or len(keys_list) != 0:
-                try:
-                    for k_child in keys_list.reverse():
-                        if part_name in k_child and k_child not in self.part_id_black_list:
-                            child = k_child
-                            father = dad
-                            break
-                except TypeError:
-                    print keys_list, type(keys_list)
+            for k_child in self.transforms_dynamic[dad].keys():
+                if part_name in k_child and k_child not in self.part_id_black_list:
+                    child = k_child
+                    father = dad
+                    break
         elif sub_dad is not None:            
             fdad = ''
             # rospy.loginfo("[find_part_name] transforms_dynamic: " + str(self.transforms_dynamic))
@@ -111,38 +105,26 @@ class TfManager:
                 if sub_dad in k:
                     rospy.loginfo("[find_part_name] found sub_dad/k: " + str(sub_dad) + "/" + str(k))
                     fdad = k
-                    keys_list = self.transforms_dynamic[fdad].copy().keys()
-                    print keys_list, type(keys_list)
-                    if keys_list is not None or len(keys_list) != 0:
-                        try:
-                            for k_child in keys_list.reverse():
-                                if part_name in k_child and k_child not in self.part_id_black_list:
-                                    child = k_child
-                                    father = fdad
-                                    found = True
-                                    rospy.loginfo("[find_part_name] found child/father: " + str(child) + "/" + str(father))
-                                    break
-                            if(found):
-                                break
-                        except TypeError:
-                            print keys_list, type(keys_list)
+                    for k_child in self.transforms_dynamic[fdad].keys():
+                        if part_name in k_child and k_child not in self.part_id_black_list:
+                            child = k_child
+                            father = fdad
+                            found = True
+                            rospy.loginfo("[find_part_name] found child/father: " + str(child) + "/" + str(father))
+                            break
+                    if(found):
+                        break                     
 
         if len(child) == 0 and sub_dad is None:
             for k in self.transforms_dynamic.keys():
-                keys_list = self.transforms_dynamic[k].copy().keys()
-                print keys_list
-                if keys_list is not None or len(keys_list) != 0:
-                    try:
-                        for k_child in keys_list.reverse():
-                            if part_name in k_child and k_child not in self.part_id_black_list:
-                                child = k_child
-                                break
-                    except TypeError:
-                            print keys_list, type(keys_list)
-                            
-                    if len(child) > 0:
-                        father = k
+                for k_child in self.transforms_dynamic[k].keys():
+                    if part_name in k_child and k_child not in self.part_id_black_list:
+                        child = k_child
                         break
+
+                if len(child) > 0:
+                    father = k
+                    break
 
         if len(child) == 0 and sub_dad is None: #TODO check id we should avoid in case of sub_dad
             for k in self.transforms_static.keys():
