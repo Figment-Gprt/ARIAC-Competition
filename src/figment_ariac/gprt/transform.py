@@ -37,8 +37,7 @@ def transform_list_to_world(transforms):
     lastTf = None
     resultTf = None
     while len(transforms) > 0:
-        lastTf = transforms.pop(0)
-        print (lastTf)
+        lastTf = transforms.pop(0)['transform']
         if resultTf is None:
             resultTf = lastTf.get_transform_matrix()
         else:

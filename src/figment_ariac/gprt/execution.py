@@ -39,6 +39,7 @@ class ExecBelt:
                 tray_id = self.part_plan.dest_tray_id
                 desired_part_pose = self.part_plan.part.desired_pose
                 exec_step = +1  # STEP 0 - DONE
+                gripper_actions.send_gripping_cmd_and_wait(False)
 
 ###################       STEP 1       ###################################
             if(not jump and exec_step <= 1 and not self.exec_part.isInterupted()):  # STEP 1 - Check Belt
@@ -56,14 +57,13 @@ class ExecBelt:
                         return False
                     r = self.exec_part.find_part_any_bin(
                         camera_id, part_id, part_type)
-                    part_world_tf_time = global_vars.tf_manager.get_piece_tf_time(
-                        camera_id, part_id)
+
                     if(r is None):
                         rospy.loginfo(
                             "[ExecuteBeltPart]:Failed. No available part {} found".format(part_type))
                         self.part_plan.part.reset()
                         return False
-                    part_world_position, part_world_orientation = r
+                    part_world_position, part_world_orientation, part_world_tf_time = r
 
                     exec_step = +1  # STEP 1 - DONE
 
@@ -103,25 +103,28 @@ class ExecBelt:
                 if not success:
                     rospy.loginfo(
                         "[ExecuteBeltPart]: step3 failed completly" + str(attempt))
+                    gripper_actions.send_gripping_cmd_and_wait(False)
                     global_vars.tf_manager.add_part_id_to_bl(part_id)
                     self.part_plan.part.reset()
                     return False
+
 
                 exec_step = +1  # STEP 3 - DONE
 
 ###################       STEP 4       ###################################
 
-            # STEP 4 - Move back to initial position with the piece
-            if(not jump and exec_step <= 4 and not self.exec_part.isInterupted()):
+            # # STEP 4 - Move to rest position
+            # if(not jump and exec_step <= 4 and not self.exec_part.isInterupted()):
 
-                rospy.loginfo("\n\n[ExecuteBeltPart]: STEP 4 \n")
-                success = self.exec_part.move_wait_belt(part_world_position)
-                if not success:
-                    rospy.loginfo("[ExecuteBeltPart]: step4 failed. Reseting")
-                    self.part_plan.part.reset()
-                    return False
+            #     rospy.loginfo("\n\n[ExecuteBeltPart]: STEP 4 \n")
+            #     success = self.exec_part.move_wait_belt(part_world_position)
 
-                exec_step =+1 #STEP  - DONE
+            #     if not success:
+            #         rospy.loginfo("[ExecuteBeltPart]: step4 failed. Reseting")
+            #         self.part_plan.part.reset()
+            #         return False
+
+            #     exec_step =+1 #STEP  - DONE
 
 ###################       STEP 5       ##########################################                
             if(not jump and exec_step <= 5 and not self.exec_part.isInterupted()): #STEP 5 - Move To TRAY
@@ -133,7 +136,6 @@ class ExecBelt:
                     self.part_plan.part.reset()
                     return False
 
-            if(exec_step <= 4 and not self.exec_part.isInterupted()): #STEP 6 - Temporary Debug
                 exec_step =+1 #STEP  - DONE
 
 ###################       STEP 6       ##########################################  
@@ -157,7 +159,6 @@ class ExecBelt:
                     arm_actions.moveToolTipZY(incrementZ=0.2, incrementY=incrementY, timeToGoal=1.2)
 
                     # waiting tf_manager update
-                    rospy.sleep(5)
                     camera_id, part_id = global_vars.tf_manager.find_part_name(part_name=part_name, dad=camera_name)
                     rospy.loginfo("[ExecutePart]: DEBUG camera_id: {} ; part_id{}".format(camera_id, part_id))
                     if(len(camera_id) == 0 or len(part_id) == 0): #part not found
@@ -168,7 +169,6 @@ class ExecBelt:
                                                     force_grp_sts=False, 
                                                     time=1)
                         # rospy.loginfo("[ExecutePart]: DEBUG SLEEL \n\n\n")
-                        # rospy.sleep(10)
                         if not success:
                             #TODO MOVE UP A BIT
                             rospy.logerr("[ExecutePart]: step6 failed. Could not get back to AGV")
@@ -340,6 +340,7 @@ class ExecBin:
                 to_flip = self.part_plan.to_flip
                 if to_flip:
                     rospy.loginfo("\n\n[ExecBin][ExecutePart]: STEP 0 : Part must be FLIPPED\n\n\n\n")
+                gripper_actions.send_gripping_cmd_and_wait(False)
 
 ###################       STEP 1       ##########################################
 
@@ -363,7 +364,7 @@ class ExecBin:
                             "[ExecutePart]:Failed. No available part {} found".format(part_type))
                         self.part_plan.part.reset()
                         return False
-                    part_world_position, part_world_orientation = r
+                    part_world_position, part_world_orientation, time = r
 
                     exec_step =+1 #STEP 1 - DONE
 
@@ -747,8 +748,6 @@ class ExecutePart:
         print "a_time: " + str(t) + " trans_time: " + str(part_world_tf_time) + " diff = " + str(time_diff)
         incr = time_diff * 0.2  # if time_diff > 2 else 0.2
 
-        pos_robot[1] = list_joint_values[1] - incr
-
         # t = rospy.get_time()
         # timer = rospy.get_time()
         # time_diff = (t-part_world_tf_time)
@@ -756,14 +755,6 @@ class ExecutePart:
         # incr = time_diff * 0.2  # if time_diff > 2 else 0.2
         # wrist_comp = WRIST_1_2 * 0.33 if time_diff > 2 else WRIST_1_2/2
         
-        arm_actions.set_arm_joint_values(pos_robot, time_diff)
-
-        t = rospy.get_time()
-        timer = rospy.get_time()
-        time_diff = (t-part_world_tf_time)
-        print "a_time: " + str(t) + " trans_time: " + str(part_world_tf_time) + " diff = " + str(time_diff)
-        incr = time_diff * 0.2  # if time_diff > 2 else 0.2
-
         pos_robot[0] = list_joint_values[0] 
         pos_robot[1] = list_joint_values[1] - incr
         pos_robot[3] = list_joint_values[3] 
@@ -773,7 +764,7 @@ class ExecutePart:
 
         arm_actions.set_arm_joint_values(pos_robot, time_diff)
 
-
+        back_position = pos_robot[2]
         while not global_vars.gripper_state.attached:
             gripper_actions.send_gripping_cmd(toGrip=True)
             pos_robot[1] -= 0.2 
@@ -786,10 +777,17 @@ class ExecutePart:
 
             arm_actions.set_arm_joint_values(pos_robot, 1)
 
-            if rospy.get_time()-timer >= 20:
+            if rospy.get_time()-timer >= 20 or pos_robot[1] <= -2.0:
                 return False
 
             rospy.sleep(1)
+
+
+        # raising arm again
+        pos_robot[0] = STATIC_POSITIONS["rest_position"][0]
+        pos_robot[2] = back_position
+        arm_actions.set_arm_joint_values(pos_robot, 0.5)
+        rospy.sleep(0.5)
 
         return True
 
@@ -847,21 +845,16 @@ class ExecutePart:
 
     def find_part_any_bin(self, camera_id, part_id, part_type):
         if len(camera_id) > 0:
-            rospy.loginfo("[ExecutePart]: camera_id: "+ str(camera_id))
             rospy.loginfo("[ExecutePart]: part: "+ str(part_id))
-            # getting bin id from the part
-            for k, v in BINS_CAMERA.items():
-                for cams in v:
-                    if cams in camera_id:
-                        part_origin = k
-                        break
 
             time = rospy.get_time()
             # getting position and orientation from the part
             transforms_list = global_vars.tf_manager.get_transform_list(part_id, 'world', time)
             rospy.logerr("[find_part_any_bin]:" + str(transforms_list))
             if(transforms_list is not None and len(transforms_list) > 0):
-                return transform.transform_list_to_world(transforms_list)
+                time = transforms_list[0]['secs']
+                t, a = transform.transform_list_to_world(transforms_list)
+                return t, a, time
             
 
     def find_part_any_agvs(self, part_id):
@@ -958,7 +951,7 @@ class ExecutePart:
         
         arm_actions.MoveSideWays(0.022)
         
-        arm_actions.moveToolTip(-0.275, 0.13, 0.5)
+        arm_actions.moveToolTip(-0.272, 0.13, 0.5)
 
         gripper_actions.send_gripping_cmd(toGrip=False)
         
@@ -998,7 +991,7 @@ class ExecutePart:
                 "[ExecutePart]:Failed. No available part {} found".format(part_type))
             self.part_plan.part.reset()
             return False
-        part_world_position, part_world_orientation = r
+        part_world_position, part_world_orientation, time = r
 
         rospy.sleep(1)
 

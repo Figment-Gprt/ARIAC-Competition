@@ -305,7 +305,7 @@ def moveToolTip(incrementZ=0.3, incrementX=0.1, timeToGoal=0.2):
         angles[2] = shoulder_lift_joint
         angles[4] = wrist_1_joint
 
-        rospy.sleep(1)
+        # rospy.sleep(1)
 
         set_arm_joint_values(angles, timeToGoal)
 
@@ -351,7 +351,7 @@ def moveToolTipZY(incrementZ=0.3, incrementY=0.1, timeToGoal=0.2):
         angles[2] = shoulder_lift_joint
         angles[4] = wrist_1_joint
 
-        rospy.sleep(1)
+        # rospy.sleep(1)
 
         # msg = utils.createJointTrajectory(angles, time=1)
         # joint_trajectory_publisher.publish(msg)
