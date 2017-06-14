@@ -352,7 +352,7 @@ class ExecBin:
                 if part_origin == PickPlaces.ANY_BIN.value:
                     rospy.loginfo("\n\n[ExecBin]: STEP 1 \n")
                     # step 0 - get available pose for a part on any bin
-                    camera_id, part_id = global_vars.tf_manager.find_part_name(part_type)
+                    camera_id, part_id = global_vars.tf_manager.find_part_name(part_type, sub_dad="logical_camera_bin")
                     # getting part id without the camera id
                     part_name = part_id[part_id.find(part_type):-6]
                     
@@ -619,6 +619,13 @@ class ExecBin:
                                                                   time_to_execute_action=0.3)
 
                     rospy.loginfo("[ExecBin][STEP8] - Go to discard pos")
+                    arm_actions.set_arm_joint_values(list_of_joint_values=angles_discard,
+                        time_to_execute_action=0.5)
+
+                    arm_actions.check_arm_joint_values_published(list_of_joint_values=angles_discard)
+
+                    rospy.loginfo("[ExecBin][STEP8] - Open elbow")
+                    angles_discard[0] = 1.76
                     arm_actions.set_arm_joint_values(list_of_joint_values=angles_discard,
                         time_to_execute_action=0.5)
 
