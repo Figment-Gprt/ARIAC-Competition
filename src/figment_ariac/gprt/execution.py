@@ -859,7 +859,7 @@ class ExecutePart:
 
     def find_part_any_bin(self, camera_id, part_id, part_type):
         if len(camera_id) > 0:
-            rospy.loginfo("[ExecutePart]: part: "+ str(part_id))
+            rospy.loginfo("[ExecutePart][find_part_any_bin]: part: "+ str(part_id))
 
             time = rospy.get_time()
             # getting position and orientation from the part
@@ -872,7 +872,7 @@ class ExecutePart:
             
 
     def find_part_any_agvs(self, part_id):
-        rospy.loginfo("[ExecutePart]: part: "+ str(part_id))
+        rospy.loginfo("[ExecutePart][find_part_any_agvs]: part: "+ str(part_id))
         # getting bin id from the part
         time = rospy.get_time()
         # getting position and orientation from the part
