@@ -58,7 +58,7 @@ class ExecBelt:
                         camera_id, part_id, part_type)
                     part_world_tf_time = global_vars.tf_manager.get_piece_tf_time(
                         camera_id, part_id)
-                    if(r is None):
+                    if(r is None or part_world_tf_time is None):
                         rospy.loginfo(
                             "[ExecuteBeltPart]:Failed. No available part {} found".format(part_type))
                         self.part_plan.part.reset()
@@ -572,7 +572,8 @@ class ExecBin:
                     angles_discard_back = STATIC_POSITIONS["disBelAgv2Back"]
                     solver = arm_actions.SolverType.AGV2
                 else:
-                    rospy.logerr("[ExecutePart]: step8 failed. We do not know what to do yet")
+                    rospy.logerr("\n\n\n[ExecutePart]: step8 failed. We do not know what to do yet")
+                    rospy.logerr("[ExecutePart]: step8 failed. part_plan: {}\n\n\n".format(part_plan))
                     self.part_plan.part.reset()
                     return False
 
@@ -630,7 +631,8 @@ class ExecBin:
 
 
                     if(not success):
-                        rospy.logerr("[ExecutePart]: step8 failed. We do not know what to do yet")
+                        rospy.logerr("\n\n\n[ExecutePart]: step8 failed. We do not know what to do yet")
+                        rospy.logerr("\n\n\n[ExecutePart]: send_gripping_cmd_and_wait(False) Failed\n\n\n")
                         self.part_plan.part.reset()
                         return False
 
@@ -859,9 +861,11 @@ class ExecutePart:
             time = rospy.get_time()
             # getting position and orientation from the part
             transforms_list = global_vars.tf_manager.get_transform_list(part_id, 'world', time)
-            rospy.logerr("[find_part_any_bin]:" + str(transforms_list))
+            
             if(transforms_list is not None and len(transforms_list) > 0):
                 return transform.transform_list_to_world(transforms_list)
+            else:
+                rospy.logerr("\n\n\n[find_part_any_bin]: {}\n\n\n".format(transforms_list))
             
 
     def find_part_any_agvs(self, part_id):

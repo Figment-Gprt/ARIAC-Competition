@@ -34,7 +34,7 @@ class TfManager:
             try:
                 t = self.transforms_dynamic[father][child]['secs']
             except KeyError:
-                rospy.logerr("[get_transform]: deleted between dict accesses")
+                rospy.logerr("\n\n\n[get_transform]: deleted between dict accesses\n\n\n")
         return t
 
     def find_part_name(self, part_name, dad=None, sub_dad=None):
@@ -107,7 +107,7 @@ class TfManager:
                 try:
                     t = self.transforms_dynamic[father][child]['transform']
                 except KeyError:
-                    rospy.logerr("[get_transform]: deleted between dict accesses")
+                    rospy.logerr("\n\n\n[get_transform]: deleted between dict accesses\n\n\n")
 
         if t is None:
             if father in self.transforms_static:
@@ -117,7 +117,7 @@ class TfManager:
                     try:
                         t = self.transforms_static[father][child]['transform']
                     except KeyError:
-                        rospy.logerr("[get_transform]: deleted between dict accesses")            
+                        rospy.logerr("\n\n\n[get_transform]: deleted between dict accesses\n\n\ns")            
 
         return t
 
