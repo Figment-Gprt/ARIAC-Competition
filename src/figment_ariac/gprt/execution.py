@@ -112,12 +112,8 @@ class ExecBelt:
 
 ###################       STEP 4       ###################################
 
-
-
-
-###################       STEP 5       ##########################################                
-            if(not jump and exec_step <= 5 and not self.exec_part.isInterupted()): #STEP 5 - Move To TRAY
-                rospy.loginfo("\n\n[ExecuteBeltPart]: STEP 5 \n")
+            if(not jump and exec_step <= 4 and not self.exec_part.isInterupted()): #STEP 4 - Move To TRAY
+                rospy.loginfo("\n\n[ExecuteBeltPart]: STEP 4 \n")
                 success = self.exec_part.move_to_tray(tray_id)
                 # success = self.exec_part.move_wait_front_part(part_world_position)
                 if not success:
@@ -127,10 +123,10 @@ class ExecBelt:
 
                 exec_step =+1 #STEP  - DONE
 
-###################       STEP 6       ##########################################  
-#STEP 6 - Put Part at tray              
-            if(not jump and exec_step <= 6 and not self.exec_part.isInterupted()): 
-                rospy.loginfo("\n\n[ExecutePart]: STEP 6 \n")
+###################       STEP 5       ##########################################  
+#STEP 5 - Put Part at tray              
+            if(not jump and exec_step <= 5 and not self.exec_part.isInterupted()): 
+                rospy.loginfo("\n\n[ExecutePart]: STEP 5 \n")
                 
                 if(self.part_plan.dest_tray_id == 1):
                     camera_name = AGVS_CAMERA["agv1"]
@@ -143,15 +139,15 @@ class ExecBelt:
                 success = self.exec_part.deposit_at_tray(desired_part_pose=desired_part_pose, part_type=part_type, tray_id=tray_id, force_check_piece=True, time_to_execute_action=1, accError=[0.009, 0.009, 0.009, 0.009,0.015, 0.015, 0.009, 0.009, 0.1])
 
                 if not success:
-                    rospy.loginfo("[ExecutePart]: step6 failed. Reseting")
-                    rospy.loginfo("[ExecutePart][STEP6] - Move tool tip up")
-                    arm_actions.moveToolTipZY(incrementZ=0.2, incrementY=incrementY, timeToGoal=1.2)
+                    rospy.loginfo("[ExecutePart]: step5 failed. Reseting")
+                    rospy.loginfo("[ExecutePart][STEP5] - Move tool tip up")
+                    arm_actions.moveToolTipZY(incrementZ=0.2, incrementY=incrementY, timeToGoal=0.3)
 
                     # waiting tf_manager update
                     camera_id, part_id = global_vars.tf_manager.find_part_name(part_name=part_name, dad=camera_name)
                     rospy.loginfo("[ExecutePart]: DEBUG camera_id: {} ; part_id{}".format(camera_id, part_id))
                     if(len(camera_id) == 0 or len(part_id) == 0): #part not found
-                        rospy.loginfo("[ExecutePart]: step6 failed [part not found]. Reseting")
+                        rospy.loginfo("[ExecutePart]: step5 failed [part not found]. Reseting")
                         # arm_actions.moveToolTipZY(incrementZ=0.2, incrementY=incrementY, timeToGoal=0.2)
                         success = self.exec_part.move_to_tray(tray_id=tray_id, 
                                                     force_check_piece=False, 
@@ -160,7 +156,7 @@ class ExecBelt:
                         # rospy.loginfo("[ExecutePart]: DEBUG SLEEL \n\n\n")
                         if not success:
                             #TODO MOVE UP A BIT
-                            rospy.logerr("[ExecutePart]: step6 failed. Could not get back to AGV")
+                            rospy.logerr("[ExecutePart]: step5 failed. Could not get back to AGV")
                         self.part_plan.part.reset()
                         return False    
                     r = self.exec_part.find_part_any_agvs(part_id)#TODO any agv or a specific agv?
@@ -175,7 +171,7 @@ class ExecBelt:
                     
                     # success = self.exec_part.move_wait_above_part(part_world_position, part_world_orientation, part_type, solver, 0.2)
 
-                    rospy.loginfo("[ExecutePart][STEP6] - Move Wait a bit above")
+                    rospy.loginfo("[ExecutePart][STEP5] - Move Wait a bit above")
                     success = self.exec_part.move_wait_above_part(part_world_position=part_world_position, 
                                             part_world_orientation=part_world_orientation, 
                                             part_type=part_type, solver_type=solver, 
@@ -183,7 +179,7 @@ class ExecBelt:
                                             time_to_execute_action=1)
                     rospy.sleep(10)
                     if success:
-                        rospy.loginfo("[ExecutePart][STEP6] - go_down_until_get_piece")
+                        rospy.loginfo("[ExecutePart][STEP5] - go_down_until_get_piece")
                         success = arm_actions.go_down_until_get_piece(world_position=part_world_position, 
                                                                 world_orientation=part_world_orientation, 
                                                                 part_type=part_type, 
@@ -200,17 +196,17 @@ class ExecBelt:
                         jump = True
 
                     else:
-                        rospy.logerr("[ExecutePart]: step6 failed. We do not know what to do yet")
+                        rospy.logerr("[ExecutePart]: step5 failed. We do not know what to do yet")
                         exec_step =+1 #STEP  - DONE
                 else:                    
                     arm_actions.moveToolTipZY(0.3, incrementY, 1.4)
                     exec_step =+1 #STEP  - DONE
 
-###################       STEP 7       ##########################################  
-#STEP 7 - Check Falty Piece
+###################       STEP 6       ##########################################  
+#STEP 6 - Check Falty Piece
 #TODO Check falty if the part dropped at tray as well(improve performance)
-            if(not jump and exec_step <= 7 and not self.exec_part.isInterupted()): 
-                rospy.loginfo("\n\n[ExecutePart]: STEP 7 \n")
+            if(not jump and exec_step <= 6 and not self.exec_part.isInterupted()): 
+                rospy.loginfo("\n\n[ExecutePart]: STEP 6 \n")
                 rospy.sleep(1)#If we dont sleep we may not find the faulty one on this iteration
                 if(self.part_plan.dest_tray_id == 1):
                     faulty_sensor_msg = global_vars.faulty_sensor1
@@ -224,14 +220,14 @@ class ExecBelt:
                     solver = arm_actions.SolverType.AGV2
                 else:
                     rospy.logerr("\n\n\n[ExecutePart][BELT]: step7 failed. We do not know what to do yet")
-                    rospy.logerr("[ExecutePart][BELT]: step7 failed. part_plan: {}\n\n\n".format(part_plan))
+                    rospy.logerr("[ExecutePart][BELT]: step6 failed. part_plan: {}\n\n\n".format(part_plan))
                     self.part_plan.part.reset()
                     return False
 
                 falty = len(faulty_sensor_msg) > 0
                 if falty:
 
-                    rospy.loginfo("[ExecutePart][STEP7] - Falty part detected")
+                    rospy.loginfo("[ExecutePart][STEP6] - Falty part detected")
 
                     sensor_id, faulty_party_id = global_vars.tf_manager.find_part_name(
                         part_type, sensor_name)
@@ -242,14 +238,14 @@ class ExecBelt:
                         transforms_list)
 
                     rospy.loginfo(
-                        "[ExecutePart][STEP7] - Move Wait a bit above")
+                        "[ExecutePart][STEP6] - Move Wait a bit above")
                     success = self.exec_part.move_wait_above_part(part_world_position=part_world_position,
                                                                   part_world_orientation=part_world_orientation,
                                                                   part_type=part_type, solver_type=solver,
                                                                   a_bit_above_value=0.015,
                                                                   time_to_execute_action=0.1)
 
-                    rospy.loginfo("[ExecutePart][STEP7] - Go down untill get")
+                    rospy.loginfo("[ExecutePart][STEP6] - Go down untill get")
                     success = arm_actions.go_down_until_get_piece(world_position=part_world_position,
                                                                   world_orientation=part_world_orientation,
                                                                   part_type=part_type,
@@ -257,7 +253,7 @@ class ExecBelt:
                                                                   distance=0.01, solver_type=solver)
                     
 
-                    rospy.loginfo("[ExecutePart][STEP7] - Move ToolTip Up")  
+                    rospy.loginfo("[ExecutePart][STEP6] - Move ToolTip Up")  
 
                     success = self.exec_part.move_wait_above_part(part_world_position=part_world_position, 
                                                                 part_world_orientation=part_world_orientation, 
@@ -266,16 +262,16 @@ class ExecBelt:
                                                                 time_to_execute_action=0.3)
                     
                     
-                    rospy.loginfo("[ExecutePart][STEP7] - Go to discard pos")  
+                    rospy.loginfo("[ExecutePart][STEP6] - Go to discard pos")  
                     arm_actions.set_arm_joint_values(list_of_joint_values=angles_discard,
                         time_to_execute_action=0.5)
 
                     arm_actions.check_arm_joint_values_published(list_of_joint_values=angles_discard)
 
-                    rospy.loginfo("[ExecutePart][STEP7] - discard pos") 
+                    rospy.loginfo("[ExecutePart][STEP6] - discard pos") 
                     success = gripper_actions.send_gripping_cmd_and_wait(False)
                     if(not success):
-                        rospy.logerr("[ExecutePart]: step7 failed. We do not know what to do yet")
+                        rospy.logerr("[ExecutePart]: step6 failed. We do not know what to do yet")
                         self.part_plan.part.reset()
                         return False
 
@@ -284,14 +280,14 @@ class ExecBelt:
                 else:
                     exec_step =+1 #STEP  - DONE
 
-###################       STEP 8       ##########################################                
-            if(exec_step <= 8 and not self.exec_part.isInterupted()): #STEP 8 - Move To TRAY
-                rospy.loginfo("\n\n[ExecuteBeltPart]: STEP 8 \n")
+###################       STEP 7       ##########################################                
+            if(exec_step <= 7 and not self.exec_part.isInterupted()): #STEP 7 - Move To TRAY
+                rospy.loginfo("\n\n[ExecuteBeltPart]: STEP 7 \n")
                 
                 success = self.exec_part.move_to_tray(tray_id, force_check_piece=False, time=0.5)
                 # success = self.exec_part.move_wait_front_part(part_world_position)
                 if not success:
-                    rospy.loginfo("[ExecuteBeltPart]: step8 failed. Reseting")
+                    rospy.loginfo("[ExecuteBeltPart]: step7 failed. Reseting")
                     self.part_plan.part.reset()
                     return False
 
@@ -473,7 +469,7 @@ class ExecBin:
                 if not success:
                     rospy.loginfo("[ExecBin][ExecutePart]: step7 failed. Reseting")
                     rospy.loginfo("[ExecBin][ExecutePart][STEP7] - Move tool tip up")
-                    arm_actions.moveToolTipZY(incrementZ=0.2, incrementY=incrementY, timeToGoal=1.2)
+                    arm_actions.moveToolTipZY(incrementZ=0.2, incrementY=incrementY, timeToGoal=0.3)
 
                     # waiting tf_manager update
                     rospy.sleep(5)

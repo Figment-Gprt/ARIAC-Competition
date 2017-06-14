@@ -93,8 +93,7 @@ def tf(toFrame, fromFrame):
 
 # Returns pos.translation[x, y, z] || pos.rotation[x, y, z, w]
 def getUpperArmPose():
-    time = rospy.get_time()
-    transforms = global_vars.tf_manager.get_transform_list('upper_arm_link', 'world', time)
+    transforms = global_vars.tf_manager.get_transform_list('upper_arm_link', 'world')
     r = transform.transform_list_to_world(transforms)
     if r:
         return r
@@ -104,8 +103,7 @@ def getUpperArmPose():
 
 
 def getForeArmPos():
-    time = rospy.get_time()
-    transforms = global_vars.tf_manager.get_transform_list('forearm_link', 'world', time)
+    transforms = global_vars.tf_manager.get_transform_list('forearm_link', 'world')
     r = transform.transform_list_to_world(transforms)
     if r:
         return r
@@ -126,8 +124,7 @@ def getForeArmTipPos():
 
 
 def getVacuumGripperPos():
-    time = rospy.get_time()
-    transforms = global_vars.tf_manager.get_transform_list('tool0', 'world', time)
+    transforms = global_vars.tf_manager.get_transform_list('tool0', 'world')
     r = transform.transform_list_to_world(transforms)
     if r:
         return r
