@@ -249,7 +249,7 @@ class ExecBelt:
                     success = arm_actions.go_down_until_get_piece(world_position=part_world_position,
                                                                   world_orientation=part_world_orientation,
                                                                   part_type=part_type,
-                                                                  time=1, ignore_height=False,
+                                                                  time=1.5, ignore_height=False,
                                                                   distance=0.01, solver_type=solver)
                     
 
@@ -519,7 +519,7 @@ class ExecBin:
                         success = arm_actions.go_down_until_get_piece(world_position=part_world_position,
                                                                       world_orientation=part_world_orientation,
                                                                       part_type=part_type,
-                                                                      time=1, ignore_height=False,
+                                                                      time=1.5, ignore_height=False,
                                                                       distance=0.005, solver_type=solver,
                                                                       adjust=True)
 
@@ -589,7 +589,7 @@ class ExecBin:
                     success = arm_actions.go_down_until_get_piece(world_position=part_world_position,
                                                                   world_orientation=part_world_orientation,
                                                                   part_type=part_type,
-                                                                  time=2, ignore_height=False,
+                                                                  time=1.5, ignore_height=False,
                                                                   distance=0.01, solver_type=solver)
                     # rospy.sleep(5)  # TODO REMOVE
 
