@@ -37,6 +37,48 @@ class TfManager:
                 rospy.logerr("\n\n\n[get_transform]: deleted between dict accesses\n\n\n")
         return t
 
+    def find_part_name_in_belt(self, part_name, sub_dad):
+        # 
+        father = ""
+        child = ""
+          
+        fdad = ''
+        # rospy.loginfo("[find_part_name] transforms_dynamic: " + str(self.transforms_dynamic))
+        debug = True
+        # rospy.loginfo("[find_part_name] DEBUG: ")
+        # if(debug):
+        #     for k in self.transforms_dynamic.keys():   
+        #         rospy.loginfo("\n\n\n[find_part_name] k: " + str(k))
+        #         values = self.transforms_dynamic[k]
+        #         rospy.loginfo("[find_part_name] values: " + str(values) + "\n\n") 
+        found = False 
+        newst_time = None
+        for k in self.transforms_dynamic.keys():
+            rospy.loginfo("[find_part_name] test fdad/k: " + str(sub_dad) + "/" + str(k))  
+            if sub_dad in k:
+                rospy.loginfo("[find_part_name] found sub_dad/k: " + str(sub_dad) + "/" + str(k))
+                fdad = k
+                for k_child in self.transforms_dynamic[fdad].keys():
+                    if part_name in k_child and k_child not in self.part_id_black_list:                        
+                        rospy.loginfo("[find_part_name] found child/father: " + str(child) + "/" + str(father))
+                        secs = self.transforms_dynamic[fdad][k_child]["secs"]
+                        if(newst_time is None):
+                            child = k_child
+                            father = fdad
+                            found = True
+                            newst_time = secs
+                            
+                        elif secs < newst_time:
+                            child = k_child
+                            father = fdad
+                            found = True
+                   
+
+               
+
+
+        return father, child
+
     def find_part_name(self, part_name, dad=None, sub_dad=None):
         # 
         father = ""
