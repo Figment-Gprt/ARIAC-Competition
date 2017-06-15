@@ -268,7 +268,9 @@ def MoveSideWays(move_side):
             list_of_joint_values=angles)
         
 
-def moveToolTip(incrementZ=0.3, incrementX=0.1, timeToGoal=0.2):
+def moveToolTip(incrementZ=0.3, incrementX=0.1, timeToGoal=0.2, 
+                accError=[0.009, 0.009, 0.009, 0.009,
+                                               0.015, 0.015, 0.009, 0.009, 0.009]):
         
         posUpperArm, angleUpperArm = utils.getUpperArmPose()
         posVacum, angleVacum = utils.getVacuumGripperPos()
@@ -311,7 +313,7 @@ def moveToolTip(incrementZ=0.3, incrementX=0.1, timeToGoal=0.2):
         set_arm_joint_values(angles, timeToGoal)
 
         check_arm_joint_values_published(
-            list_of_joint_values=angles)
+            list_of_joint_values=angles, accError=accError)
 
 
             

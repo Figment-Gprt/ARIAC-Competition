@@ -1186,8 +1186,11 @@ class ExecutePart:
         arm_actions.turnWrist(0.01)
         
         arm_actions.MoveSideWays(0.022)
+
+        accError=[0.009, 0.009, 0.009, 0.009,
+                                               0.1, 0.1, 0.009, 0.009, 0.009]
         
-        arm_actions.moveToolTip(-0.277, 0.13, 1.0)
+        arm_actions.moveToolTip(-0.277, 0.13, 1.0, accError=accError)
 
         rospy.sleep(0.1)
 
