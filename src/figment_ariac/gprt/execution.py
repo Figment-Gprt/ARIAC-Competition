@@ -1061,7 +1061,7 @@ class ExecutePart:
 
             time = rospy.get_time()
             # getting position and orientation from the part
-            transforms_list = global_vars.tf_manager.get_transform_list(part_id, 'world', time)#DEBUG
+            transforms_list = global_vars.tf_manager.get_transform_list(part_id, 'world', None)#DEBUG
             # rospy.logerr("[find_part_any_bin]:" + str(transforms_list))
             if(transforms_list is not None and len(transforms_list) > 0):
                 time = transforms_list[0]['secs']
