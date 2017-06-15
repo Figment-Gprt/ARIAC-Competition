@@ -227,7 +227,7 @@ class TfManager:
     def tf_callback(self, msg):
         frames_ids = []
         newestSec = -sys.maxint - 1
-        for frame in msg.transforms:
+        for frame in reversed(msg.transforms):
             transform = self.__create_transform(
                 frame.transform.translation, frame.transform.rotation)
             frames_ids.append(frame.header.frame_id)

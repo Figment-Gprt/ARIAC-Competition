@@ -410,6 +410,8 @@ class ExecBin:
         exec_step = 0
         failed_comple = False
         done = False
+        STEP_4_MAX_ATTEMPT = 4
+        step_4_attempt = 0
 
 ###################       STEP 0       ##########################################        
 
@@ -506,12 +508,17 @@ class ExecBin:
                                         time=1, ignore_height=False, 
                                         distance=0.02, solver_type=arm_actions.SolverType.BIN)
                 if not success:
-                    rospy.loginfo("[ExecBin]: step4 failed. Reseting")
-                    #TODO insert at blacklist
-                    self.part_plan.part.reset()
-                    return False
-
-                exec_step =+1 #STEP 4 - DONE
+                    rospy.logerr("[ExecBin]: step4 failed. Reseting")
+                    step_4_attempt =+ 1
+                    if(step_4_attempt > STEP_4_MAX_ATTEMPT):                    
+                        #TODO insert at blacklist
+                        rospy.logerr("\n\n[ExecBin]: step4 failed. add_part_id_to_bl part: {}\n\n".format(part_id))
+                        global_vars.tf_manager.add_part_id_to_bl(part_id)
+                        self.part_plan.part.reset()
+                        return False
+                    jump = True
+                else:
+                    exec_step =+1 #STEP 4 - DONE
 
 ###################       STEP 5       ##########################################
 
@@ -646,7 +653,8 @@ class ExecBin:
                             rospy.logerr("\n\n\n\n[ExecBin]: step7 FAILED ")
                             rospy.logerr("[ExecBin]: ------------------------ ")
                             rospy.logerr("[ExecBin]: RESETING PART.PLAN() ")
-                            self.exec_part.move_to_tray(tray_id)
+                            self.exec_part.move_to_tray(tray_id=tray_id, force_check_piece=False, 
+                                force_grp_sts=False, time=0.5)
                             self.part_plan.part.reset()
                             return False    
 
@@ -654,7 +662,8 @@ class ExecBin:
                         rospy.logerr("\n\n\n\n[ExecBin]: step7 FAILED ")
                         rospy.logerr("[ExecBin]: ------------------------ ")
                         rospy.logerr("[ExecBin]: RESETING PART.PLAN() ")
-                        self.exec_part.move_to_tray(tray_id)
+                        self.exec_part.move_to_tray(tray_id=tray_id, force_check_piece=False, 
+                                force_grp_sts=False, time=0.5)
                         self.part_plan.part.reset()
                         return False    
                 else:  
