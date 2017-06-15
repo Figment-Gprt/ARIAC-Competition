@@ -958,7 +958,7 @@ class ExecutePart:
         pos_robot[5] = list_joint_values[5]
         pos_robot[6] = list_joint_values[6]
 
-        if (pos_robot[1] < 0):
+        if (pos_robot[1] <= -2.1):
             return False
 
         arm_actions.set_arm_joint_values(pos_robot, time_diff)
@@ -976,7 +976,7 @@ class ExecutePart:
 
             arm_actions.set_arm_joint_values(pos_robot, 1)
 
-            if rospy.get_time()-timer >= 20 or pos_robot[1] <= -1.5:
+            if rospy.get_time()-timer >= 20 or pos_robot[1] <= -2.1:
                 return False
 
             rospy.sleep(1)
