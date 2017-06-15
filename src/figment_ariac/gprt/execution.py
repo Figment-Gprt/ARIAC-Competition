@@ -327,10 +327,10 @@ class ExecBelt:
 
                 part_position_at_tray, part_orientation_at_tray  = calculate_order_position(desired_part_pose, tray_id)
                 
-                camera_id, part_id = global_vars.tf_manager.find_part_name(part_name=part_name, dad=camera_name)
-                rospy.loginfo("[ExecBin]: DEBUG camera_id: {} ; part_id{}".format(camera_id, part_id))
+                camera_id, part_id = global_vars.tf_manager.find_part_name(part_name=part_name, sub_dad=camera_name)
+                rospy.loginfo("[ExecBin]: DEBUG camera_name: {}; camera_id: {} ; part_id{}".format(camera_name, camera_id, part_id))
                 if(len(camera_id) == 0 or len(part_id) == 0): #part not found
-                    rospy.loginfo("[ExecBin]: step8 failed [part not found]. Reseting")
+                    rospy.loginfo("\n\n\n[ExecBin]: step8 failed [part not found]. Reseting\n\n\n")
                     # arm_actions.moveToolTipZY(incrementZ=0.2, incrementY=incrementY, timeToGoal=0.2)
                     success = self.exec_part.move_to_tray(tray_id=tray_id, 
                                                 force_check_piece=False, 
@@ -341,8 +341,8 @@ class ExecBelt:
                     if not success:
                         #TODO MOVE UP A BIT
                         rospy.logerr("[ExecBin]: step8 failed. Could not get back to AGV")
-                    self.part_plan.part.reset()
-                    return False
+                    # self.part_plan.part.reset()
+                    return True #TODO CHECK all parts. not just the one
                 # rospy.sleep(1)
                 r = self.exec_part.find_part_any_agvs(part_id)#TODO any agv or a specific agv?
                 
@@ -574,7 +574,7 @@ class ExecBin:
 
                     # waiting tf_manager update
                     rospy.sleep(2.5) #TODO changed from 5 to 2.5. Check if ok.
-                    camera_id, part_id = global_vars.tf_manager.find_part_name(part_name=part_name, dad=camera_name)
+                    camera_id, part_id = global_vars.tf_manager.find_part_name(part_name=part_name, sub_dad=camera_name)
                     rospy.loginfo("[ExecBin]: DEBUG camera_id: {} ; part_id{}".format(camera_id, part_id))
                     if(len(camera_id) == 0 or len(part_id) == 0): #part not found
                         rospy.loginfo("[ExecBin]: step7 failed [part not found]. Reseting")
@@ -725,6 +725,9 @@ class ExecBin:
                                                                   part_type=part_type, solver_type=solver,
                                                                   a_bit_above_value=0.3,
                                                                   time_to_execute_action=0.3)
+
+                    
+                    self.exec_part.move_to_tray(tray_id, time=1)
 
                     rospy.loginfo("[ExecBin][STEP8] - Go to discard pos")
                     arm_actions.set_arm_joint_values(list_of_joint_values=angles_discard,
