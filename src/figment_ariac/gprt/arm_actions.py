@@ -164,8 +164,9 @@ def go_down_until_get_piece(world_position, world_orientation, part_type,
 
 
 
-    set_arm_joint_values(angles, time)
+
     success = gripper_actions.send_gripping_cmd(toGrip=True)
+    set_arm_joint_values(angles, time)
     if not success:
         rospy.logerr(
         "[go_down_until_get_piece] send_gripping_cmd Failure")
