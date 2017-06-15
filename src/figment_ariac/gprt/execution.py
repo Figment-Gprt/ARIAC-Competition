@@ -791,7 +791,7 @@ class ExecBin:
                 part_position_at_tray, part_orientation_at_tray  = calculate_order_position(desired_part_pose, tray_id)
                 
                 camera_id, part_id = global_vars.tf_manager.find_part_name(part_name=part_name, dad=camera_name)
-                rospy.loginfo("[ExecBin]: DEBUG camera_id: {} ; part_id{}".format(camera_id, part_id))
+                rospy.loginfo("[ExecBin]: DEBUG camera_name:{}; camera_id: {} ; part_id{}".format(camera_name, camera_id, part_id))
                 if(len(camera_id) == 0 or len(part_id) == 0): #part not found
                     rospy.loginfo("[ExecBin]: step10 failed [part not found]. Reseting")
                     # arm_actions.moveToolTipZY(incrementZ=0.2, incrementY=incrementY, timeToGoal=0.2)
