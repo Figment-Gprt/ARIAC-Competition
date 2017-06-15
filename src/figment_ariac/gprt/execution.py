@@ -1187,7 +1187,9 @@ class ExecutePart:
         
         arm_actions.MoveSideWays(0.022)
         
-        arm_actions.moveToolTip(-0.272, 0.13, 1)
+        arm_actions.moveToolTip(-0.277, 0.13, 1.0)
+
+        rospy.sleep(0.1)
 
         gripper_actions.send_gripping_cmd(toGrip=False)
         
