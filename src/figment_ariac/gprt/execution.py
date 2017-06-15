@@ -52,7 +52,7 @@ class ExecBelt:
                     # step 0 - get available pose for a part on any bin
                     camera_name = ORIGN_CAMERA["belt"] + "_frame"
                     camera_id, part_id = global_vars.tf_manager.find_part_name(
-                        part_type, dad=camera_name)
+                        part_type, sub_dad=camera_name)
                     part_name = part_id[part_id.find(part_type):-6]
                     if(camera_id is None or part_id is None):
                         rospy.loginfo(
@@ -565,7 +565,7 @@ class ExecBin:
                 rospy.loginfo("\n\n[ExecBin]: STEP 7 - deposit_at_tray \n")
                 success = self.exec_part.deposit_at_tray(desired_part_pose=desired_part_pose, part_type=part_type, tray_id=tray_id, force_check_piece=True, time_to_execute_action=1)
                 rospy.loginfo("\n\n[ExecBin]: STEP 7 - deposit_at_tray sucess: {} \n".format(success))
-
+                #TODO Check if falty
 
                 if not success:
                     rospy.loginfo("[ExecBin]: step7 failed. Reseting")
@@ -658,8 +658,8 @@ class ExecBin:
                         self.part_plan.part.reset()
                         return False    
                 else:  
-                    rospy.loginfo("\n\n[ExecBin][ExecutePart]: STEP 7 - moveToolTipZY \n")                  
-                    arm_actions.moveToolTipZY(0.3, incrementY, 1.4)
+                    # rospy.loginfo("\n\n[ExecBin][ExecutePart]: STEP 7 - moveToolTipZY \n")                  
+                    # arm_actions.moveToolTipZY(0.3, incrementY, 1.4)
                     rospy.loginfo("\n\n[ExecBin][ExecutePart]: STEP 7 - moveToolTipZY called\n") 
                     exec_step =+1 #STEP  - DONE
 
@@ -673,12 +673,14 @@ class ExecBin:
                     faulty_sensor_msg = global_vars.faulty_sensor1
                     sensor_name = "quality_control_sensor_1_frame"
                     angles_discard = STATIC_POSITIONS["disBelAgv1"]
+                    angles_discard_open = STATIC_POSITIONS["disBelAgv1Open"]
                     angles_discard_back = STATIC_POSITIONS["disBelAgv1Back"]
                     solver = arm_actions.SolverType.AGV1
                 elif(self.part_plan.dest_tray_id == 2): 
                     faulty_sensor_msg = global_vars.faulty_sensor2    
                     sensor_name = "quality_control_sensor_2_frame"
                     angles_discard = STATIC_POSITIONS["disBelAgv2"]
+                    angles_discard_open = STATIC_POSITIONS["disBelAgv2Open"]
                     angles_discard_back = STATIC_POSITIONS["disBelAgv2Back"]
                     solver = arm_actions.SolverType.AGV2
                 else:
@@ -731,11 +733,14 @@ class ExecBin:
                     arm_actions.check_arm_joint_values_published(list_of_joint_values=angles_discard)
 
                     rospy.loginfo("[ExecBin][STEP8] - Open elbow")
-                    angles_discard[0] = 1.76
-                    arm_actions.set_arm_joint_values(list_of_joint_values=angles_discard,
+
+
+                    rospy.loginfo("[ExecBin][STEP8] - Go to discard pos")
+                    arm_actions.set_arm_joint_values(list_of_joint_values=angles_discard_open,
                         time_to_execute_action=0.5)
 
-                    arm_actions.check_arm_joint_values_published(list_of_joint_values=angles_discard)
+                    arm_actions.check_arm_joint_values_published(list_of_joint_values=angles_discard_open)
+
 
                     rospy.loginfo("[ExecBin][STEP8] - discard pos") 
                     success = gripper_actions.send_gripping_cmd_and_wait(False)
@@ -785,8 +790,8 @@ class ExecBin:
 
                 part_position_at_tray, part_orientation_at_tray  = calculate_order_position(desired_part_pose, tray_id)
                 
-                camera_id, part_id = global_vars.tf_manager.find_part_name(part_name=part_name, dad=camera_name)
-                rospy.loginfo("[ExecBin]: DEBUG camera_id: {} ; part_id{}".format(camera_id, part_id))
+                camera_id, part_id = global_vars.tf_manager.find_part_name(part_name=part_name, sub_dad=camera_name)
+                rospy.loginfo("[ExecBin]: DEBUG camera_name:{}; camera_id: {} ; part_id{}".format(camera_name, camera_id, part_id))
                 if(len(camera_id) == 0 or len(part_id) == 0): #part not found
                     rospy.loginfo("[ExecBin]: step10 failed [part not found]. Reseting")
                     # arm_actions.moveToolTipZY(incrementZ=0.2, incrementY=incrementY, timeToGoal=0.2)
