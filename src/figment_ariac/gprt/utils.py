@@ -177,15 +177,15 @@ def iscloseError(a, b, error):
     return abs(a - b) <= error
 
 def checkPartOnTray(vet1, vet2, op):
-    diff0 = abs(vet1[0] - vet2[0])
-    diff1 = abs(vet1[1] - vet2[1])
+    diff0 = abs(vet1[0]) - abs(vet2[0])
+    diff1 = abs(vet1[1]) - abs(vet2[1])
 
     if op == "ori":
-        diff2 = abs(sin(vet1[2]) - sin(-vet2[2]))
+        diff2 = sin(-vet1[2]) + sin(vet2[2])
 
     if op == "pos":
         print (diff0, diff1)
-        if diff0 > 0.01 or diff1 > 0.01:
+        if diff0 > 0.05 or diff1 > 0.05:
             return True
         else:
             return False
