@@ -192,3 +192,5 @@ def connect_callbacks(comp_class):
     
 def init_global_vars(comp_class):
     global_vars.tf_manager = TfManager()
+    belt_camera_frame_id = BELT_CAMERA['belt'] + '_frame'
+    global_vars.tf_manager.add_to_buffer(belt_camera_frame_id)
