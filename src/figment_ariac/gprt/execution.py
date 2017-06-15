@@ -1240,7 +1240,9 @@ class ExecutePart:
                                                       part_type, ignore_height=True)
 
         # Move ToolTip UP
-        arm_actions.moveToolTip(0.2, 0, 0.3)
+        self.move_wait_above_part(part_world_position,
+                                  part_world_orientation,
+                                  part_type, a_bit_above_value=0.3)
 
         return success
 
