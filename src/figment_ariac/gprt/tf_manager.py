@@ -234,6 +234,7 @@ class TfManager:
                 self.transforms_dynamic[frame.header.frame_id][frame.child_frame_id] = {
                     'hash': transform.hash_value(),
                     'transform': transform,
+                    'time': frame.header.stamp,
                     'secs' : frame.header.stamp.secs,
                     'dirty' : False
 
@@ -246,6 +247,7 @@ class TfManager:
                 self.transforms_dynamic[frame.header.frame_id][frame.child_frame_id] = {
                     'hash': transform.hash_value(),
                     'transform': transform,
+                    'time': frame.header.stamp,
                     'secs' : frame.header.stamp.secs,
                     'dirty' : False
 
