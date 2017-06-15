@@ -616,39 +616,31 @@ class ExecBin:
                         success = self.exec_part.move_wait_above_part(part_world_position=part_world_position,
                                                                       part_world_orientation=part_world_orientation,
                                                                       part_type=part_type, solver_type=solver,
-                                                                      a_bit_above_value=0.1,
+                                                                      a_bit_above_value=0.25,
                                                                       time_to_execute_action=1,
                                                                       adjust=True)
 
+
+
                         if success:
                             rospy.loginfo(
-                                "[ExecBin][STEP7] - Move Wait a bit above")
-                            success = self.exec_part.move_wait_above_part(part_world_position=part_world_position,
-                                                                          part_world_orientation=part_world_orientation,
-                                                                          part_type=part_type, solver_type=solver,
-                                                                          a_bit_above_value=0.1,
-                                                                          time_to_execute_action=1,
+                                "[ExecBin][STEP7] - go_down_until_get_piece")
+                            # TODO DEBUG reduce time, but do test. it cannot be too
+                            # fast
+                            success = arm_actions.go_down_until_get_piece(world_position=part_world_position,
+                                                                          world_orientation=part_world_orientation,
+                                                                          part_type=part_type,
+                                                                          time=3.5, ignore_height=False,
+                                                                          distance=0.005, solver_type=solver,
                                                                           adjust=True)
 
-                            if success:
-                                rospy.loginfo(
-                                    "[ExecBin][STEP7] - go_down_until_get_piece")
-                                # TODO DEBUG reduce time, but do test. it cannot be too
-                                # fast
-                                success = arm_actions.go_down_until_get_piece(world_position=part_world_position,
-                                                                              world_orientation=part_world_orientation,
-                                                                              part_type=part_type,
-                                                                              time=1.5, ignore_height=False,
-                                                                              distance=0.005, solver_type=solver,
-                                                                              adjust=True)
+                            arm_actions.moveToolTipZY(0.3, incrementY, 0.1)
 
-                                arm_actions.moveToolTipZY(0.3, incrementY, 0.1)
-
-                                rospy.logerr("........................................................................")
-                                if success :
-                                    rospy.logerr("....................SUCCESS................................")
-                                    exec_step = 7 #We are coming back here
-                                    jump = True
+                            rospy.logerr("........................................................................")
+                            if success :
+                                rospy.logerr("....................SUCCESS................................")
+                                exec_step = 7 #We are coming back here
+                                jump = True
 
                         if not success:
                             rospy.logerr("\n\n\n\n[ExecBin]: step7 FAILED ")
@@ -717,14 +709,14 @@ class ExecBin:
                     success = self.exec_part.move_wait_above_part(part_world_position=part_world_position,
                                                                   part_world_orientation=part_world_orientation,
                                                                   part_type=part_type, solver_type=solver,
-                                                                  a_bit_above_value=0.015,
+                                                                  a_bit_above_value=0.025,
                                                                   time_to_execute_action=0.1)
 
                     rospy.loginfo("[ExecBin][STEP8] - Go down untill get")
                     success = arm_actions.go_down_until_get_piece(world_position=part_world_position,
                                                                   world_orientation=part_world_orientation,
                                                                   part_type=part_type,
-                                                                  time=1.5, ignore_height=False,
+                                                                  time=3.5, ignore_height=False,
                                                                   distance=0.01, solver_type=solver)
                     # rospy.sleep(5)  # TODO REMOVE
 
@@ -841,7 +833,7 @@ class ExecBin:
                     success = self.exec_part.move_wait_above_part(part_world_position=part_world_position,
                                                                   part_world_orientation=part_world_orientation,
                                                                   part_type=part_type, solver_type=solver,
-                                                                  a_bit_above_value=0.1,
+                                                                  a_bit_above_value=0.25,
                                                                   time_to_execute_action=1,
                                                                   adjust=True)
 
@@ -1042,7 +1034,10 @@ class ExecutePart:
             else:
                 return True
 
-    def move_wait_above_part(self, part_world_position, part_world_orientation, part_type, solver_type=arm_actions.SolverType.BIN, a_bit_above_value=0.015, time_to_execute_action=1, accError=[0.009, 0.009, 0.009, 0.009,0.015, 0.015, 0.009, 0.009, 0.009], adjust=False):
+    def move_wait_above_part(self, part_world_position, part_world_orientation, part_type, 
+        solver_type=arm_actions.SolverType.BIN, 
+        a_bit_above_value=0.025, time_to_execute_action=1, 
+        accError=[0.009, 0.009, 0.009, 0.009,0.015, 0.015, 0.009, 0.009, 0.009], adjust=False):
         rospy.loginfo("[ExecutePart]: move_wait_above_part: "+ str(part_world_position))
         list_joint_values = arm_actions.go_to_position_a_bit_above_part(
             world_position=part_world_position,
