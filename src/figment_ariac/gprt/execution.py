@@ -410,7 +410,7 @@ class ExecBin:
         exec_step = 0
         failed_comple = False
         done = False
-        STEP_4_MAX_ATTEMPT = 4
+        STEP_4_MAX_ATTEMPT = 3
         step_4_attempt = 0
 
 ###################       STEP 0       ##########################################        
@@ -508,8 +508,9 @@ class ExecBin:
                                         time=1, ignore_height=False, 
                                         distance=0.02, solver_type=arm_actions.SolverType.BIN)
                 if not success:
-                    rospy.logerr("[ExecBin]: step4 failed. Reseting")
-                    step_4_attempt =+ 1
+                    step_4_attempt += 1
+                    rospy.logerr("[ExecBin]: step4 failed step_4_attempt={}".format(step_4_attempt))
+                    
                     if(step_4_attempt > STEP_4_MAX_ATTEMPT):                    
                         #TODO insert at blacklist
                         rospy.logerr("\n\n[ExecBin]: step4 failed. add_part_id_to_bl part: {}\n\n".format(part_id))
