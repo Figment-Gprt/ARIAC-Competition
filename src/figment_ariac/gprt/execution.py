@@ -731,11 +731,15 @@ class ExecBin:
                     
                     self.exec_part.move_to_tray(tray_id, time=1)
 
-                    rospy.loginfo("[ExecBin][STEP8] - Go to discard pos")
-                    arm_actions.set_arm_joint_values(list_of_joint_values=angles_discard,
-                        time_to_execute_action=0.5)
+                    if(self.part_plan.dest_tray_id == 1):
+                        rospy.loginfo("[ExecBin][STEP8] - Go to discard pos")
+                        arm_actions.set_arm_joint_values(list_of_joint_values=angles_discard,
+                            time_to_execute_action=0.5)
+                        arm_actions.check_arm_joint_values_published(list_of_joint_values=angles_discard)
 
-                    arm_actions.check_arm_joint_values_published(list_of_joint_values=angles_discard)
+
+
+                    
 
                     rospy.loginfo("[ExecBin][STEP8] - Open elbow")
 
