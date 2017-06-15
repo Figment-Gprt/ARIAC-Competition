@@ -120,7 +120,7 @@ class TfManager:
                     if(found):
                         break                     
 
-        if len(child) == 0 and sub_dad is None:
+        if len(child) == 0 and sub_dad is None and dad is None: #TODO dad added. check
             for k in self.transforms_dynamic.keys():
                 for k_child in self.transforms_dynamic[k].keys():
                     if part_name in k_child and k_child not in self.part_id_black_list:
@@ -131,7 +131,7 @@ class TfManager:
                     father = k
                     break
 
-        if len(child) == 0 and sub_dad is None: #TODO check id we should avoid in case of sub_dad
+        if len(child) == 0 and sub_dad is None and dad is None: #TODO check id we should avoid in case of sub_dad
             for k in self.transforms_static.keys():
                 for k_child in self.transforms_static[k].keys():
                     if part_name in k_child and k_child not in self.part_id_black_list:

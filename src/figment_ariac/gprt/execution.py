@@ -52,7 +52,7 @@ class ExecBelt:
                     # step 0 - get available pose for a part on any bin
                     camera_name = ORIGN_CAMERA["belt"] + "_frame"
                     camera_id, part_id = global_vars.tf_manager.find_part_name(
-                        part_type, dad=camera_name)
+                        part_type, sub_dad=camera_name)
                     part_name = part_id[part_id.find(part_type):-6]
                     if(camera_id is None or part_id is None):
                         rospy.loginfo(
@@ -790,7 +790,7 @@ class ExecBin:
 
                 part_position_at_tray, part_orientation_at_tray  = calculate_order_position(desired_part_pose, tray_id)
                 
-                camera_id, part_id = global_vars.tf_manager.find_part_name(part_name=part_name, dad=camera_name)
+                camera_id, part_id = global_vars.tf_manager.find_part_name(part_name=part_name, sub_dad=camera_name)
                 rospy.loginfo("[ExecBin]: DEBUG camera_name:{}; camera_id: {} ; part_id{}".format(camera_name, camera_id, part_id))
                 if(len(camera_id) == 0 or len(part_id) == 0): #part not found
                     rospy.loginfo("[ExecBin]: step10 failed [part not found]. Reseting")
