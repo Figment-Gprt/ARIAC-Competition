@@ -110,14 +110,25 @@ class TfManager:
                 if sub_dad in k:
                     rospy.loginfo("[find_part_name] found sub_dad/k: " + str(sub_dad) + "/" + str(k))
                     fdad = k
+                    less_priority = True
                     for k_child in self.transforms_dynamic[fdad].keys():
                         if part_name in k_child and k_child not in self.part_id_black_list:
                             child = k_child
                             father = fdad
                             found = True
+
                             rospy.loginfo("[find_part_name] found child/father: " + str(child) + "/" + str(father))
-                            break
-                    if(found):
+                            is_bin = "logical_camera_bin" in sub_dad 
+                            if is_bin:
+                                k_trans = self.transforms_dynamic[fdad][k_child]['transform']
+                                k_translation = k_trans.translation    
+                                less_priority = (abs(k_translation[2]) > 0.19 and k_translation[1] < -0.132) 
+                                rospy.loginfo("\n\n[find_part_name] less_priority: " + str(less_priority))
+                                if (not less_priority):                       
+                                    break
+                            else:
+                                break
+                    if(found and not less_priority):
                         break                     
 
         if len(child) == 0 and sub_dad is None and dad is None: #TODO dad added. check
