@@ -12,13 +12,18 @@ class TfManager:
         This class manages all transform objects published on the /tf topic
     """
 
-    def __init__(self, timeBuffer=5.5):
+    def __init__(self, timeBuffer=0.5):
         self.transforms_dynamic = {}
         self.transforms_static = {}
         self.timeBuffer = timeBuffer
         self.graph = Graph()
         self.part_id_black_list = []
+        self.buffered_fathers = []
+        self.long_buffer_time = timeBuffer*10
 
+
+    def add_to_buffer(self, father):
+        self.buffered_fathers.append(father)
 
     def __create_transform(self, translation, rotation):
         pos = [translation.x, translation.y, translation.z]
@@ -262,11 +267,16 @@ class TfManager:
 
         for k in self.transforms_dynamic.keys():
             for j in self.transforms_dynamic[k].keys():
-                if newestSec - self.transforms_dynamic[k][j]['secs'] > self.timeBuffer and not self.transforms_dynamic[k][j]['dirty']:
-                    self.transforms_dynamic[k][j]['dirty']  = True
-                elif newestSec - self.transforms_dynamic[k][j]['secs'] > self.timeBuffer and self.transforms_dynamic[k][j]['dirty']:
-                    del self.transforms_dynamic[k][j]
-                    self.graph.delNode(j)
+                if k in self.buffered_fathers:
+                    if newestSec - self.transforms_dynamic[k][j]['secs'] > self.timeBuffer and not self.transforms_dynamic[k][j]['dirty']:
+                        self.transforms_dynamic[k][j]['dirty']  = True
+                    elif newestSec - self.transforms_dynamic[k][j]['secs'] > self.timeBuffer and self.transforms_dynamic[k][j]['dirty']:
+                        del self.transforms_dynamic[k][j]
+                        self.graph.delNode(j)
+                else:
+                    if newestSec - self.transforms_dynamic[k][j]['secs'] > self.long_buffer_time:
+                        del self.transforms_dynamic[k][j]
+                        self.graph.delNode(j)
                     
                 
                 
