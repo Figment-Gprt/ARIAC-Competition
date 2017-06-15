@@ -181,7 +181,7 @@ def checkPartOnTray(vet1, vet2, op):
     diff1 = abs(vet1[1]) - abs(vet2[1])
 
     if op == "ori":
-        diff2 = abs(cos(vet1[2]) - cos(vet2[2]))
+        diff2 = abs(cos(vet1[2])) - abs(cos(vet2[2]))
 
     if op == "pos":
         print (diff0, diff1)
