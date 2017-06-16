@@ -399,14 +399,21 @@ class Scheduler:
         parts_number = len(working_kit.parts)
         idx_parts = 0
         found_part_ok = False
-        while(idx_parts < parts_number and not found_part_ok):
-        	working_part = working_kit.parts[idx_parts]
-        	if(working_part.get_status() is not order_utils.Status.DONE):
-        		part_plan = self.get_plan_for_part(working_part)
-        		if(part_plan is not None and part_plan.pick_piece is not None):
-        			found_part_ok = True	
-        			break
-        	idx_parts+=1
+        last_non_pu_plan = None
+        use_belt = False
+        while(idx_parts < parts_number):
+            working_part = working_kit.parts[idx_parts]
+            rospy.logdebug("\n[Scheduler] Looking for plan for: {}\n".format(working_part))
+            if(working_part.get_status() is not order_utils.Status.DONE):
+                part_plan = self.get_plan_for_part(working_part)
+                if(part_plan is not None and part_plan.pick_piece is not None):
+                    found_part_ok = True
+                    if(part_plan.pick_piece.origin is PickPlaces.BELT):	
+                        use_belt = True
+                        break
+                    elif("pulley" not in working_part.part_type):
+                        last_non_pu_plan = part_plan
+            idx_parts+=1
 
         # working_part = self.get_frs_non_fin_part_from_kit(working_kit)
         # if(working_part is None):
@@ -417,10 +424,13 @@ class Scheduler:
         # part_plan = self.get_plan_for_part(working_part)
 
         if(found_part_ok):
-        	working_part.plan = part_plan
-        	return part_plan
+            if(not use_belt and last_non_pu_plan is not None):
+                working_part.plan = last_non_pu_plan 
+            else:   
+                working_part.plan = part_plan
+            return part_plan
         else:
-        	return
+            return
         
         
 
