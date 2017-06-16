@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-echo "Running build_team_system.bash for example_team2"
+echo "Running build_team_system.bash for figment_team"
 
 # Prepare ROS
 . /opt/ros/kinetic/setup.bash

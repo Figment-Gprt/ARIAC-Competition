@@ -496,8 +496,8 @@ class ExecBin:
                 exec_step =+1 #STEP 3 - DONE
 
 ###################       STEP 4       ########################################## 
-
-            if(not jump and exec_step <= 4 and not self.exec_part.isInterupted()): #STEP 4 - move to position a bit above the part           
+#STEP 4 - go_down_until_get_piece           
+            if(not jump and exec_step <= 4 and not self.exec_part.isInterupted()): 
 
                 rospy.loginfo("\n\n[ExecBin]: STEP 4 \n")
                 # 3 - go down until get the part
@@ -1181,40 +1181,64 @@ class ExecutePart:
 
     def flip_part_bin(self, part_type):
 
-        arm_actions.moveToolTip(0.3, 0.1, 1.4)
+        rospy.logerr("[flip_part_bin]: moveToolTip(0.3, 0.1, 1.4)")
+
+        arm_actions.moveToolTip(0.2, 0.1, 1.4)
+
+        rospy.logerr("[flip_part_bin]: turnWrist(0.01)")
         
         arm_actions.turnWrist(0.01)
+
+        rospy.logerr("[flip_part_bin]: MoveSideWays(0.022)")
         
         arm_actions.MoveSideWays(0.022)
 
         accError=[0.009, 0.009, 0.009, 0.009,
                                                0.1, 0.1, 0.009, 0.009, 0.009]
+
+        rospy.logerr("[flip_part_bin]: moveToolTip(-0.17, 0.13, 1.0, accError=accError)")
         
-        arm_actions.moveToolTip(-0.277, 0.13, 1.0, accError=accError)
+        arm_actions.moveToolTip(-0.17, 0.13, 1.0, accError=accError)
 
         rospy.sleep(0.1)
 
+        rospy.logerr("[flip_part_bin]: send_gripping_cmd(toGrip=False)")
+
         gripper_actions.send_gripping_cmd(toGrip=False)
+
+        rospy.logerr("[flip_part_bin]: MoveSideWays(0.02)")
         
-        arm_actions.MoveSideWays(0.05)
+        arm_actions.MoveSideWays(0.02)
+
+        rospy.logerr("[flip_part_bin]: wait_for_gripper(toGrip=False, max_wait=2, inc_sleep=0.01)")
         
-        gripper_actions.wait_for_gripper(toGrip=False, max_wait=5, inc_sleep=0.01)
+        gripper_actions.wait_for_gripper(toGrip=False, max_wait=2, inc_sleep=0.01)
+
+        
+        rospy.logerr("[flip_part_bin]: turnWrist(-1.5707963268)")        
         
         arm_actions.turnWrist(-1.5707963268)
-        
+
+        rospy.logerr("[flip_part_bin]: moveToolTip(0.4, 0, 0.3)") 
         # Move ToolTip UP
         arm_actions.moveToolTip(0.4, 0, 0.3)
-        
+
+
+
+
+        rospy.logerr("[flip_part_bin]: MoveSideWays(-0.4)")  
         #Move a bit to the other side
         arm_actions.MoveSideWays(-0.4)
         
         rospy.sleep(0.8)
         
+        rospy.logerr("[flip_part_bin]: moveToolTip(-0.01, 0.23, 0.2)")
         # Move ToolTip Down
         arm_actions.moveToolTip(-0.01, 0.23, 0.2)
         
         rospy.sleep(0.7)
         
+        rospy.logerr("[flip_part_bin]: MoveSideWays(0.3)")
          # Move a bit to the other side
         arm_actions.MoveSideWays(0.3)
         

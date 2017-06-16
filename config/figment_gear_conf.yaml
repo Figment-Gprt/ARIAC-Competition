@@ -1,52 +1,24 @@
 arm:
  type: ur10
 sensors:
- # break_beam_1:
- #   type: break_beam
- #   pose:
- #     xyz: [1.6, 2.25, 0.91]
- #     rpy: [0, 0, 'pi']
- # proximity_sensor_1:
- #   type: proximity_sensor
- #   pose:
- #     xyz: [0.95, 2.6, 0.916]
- #     rpy: [0, 0, 0]
-
- logical_camera_bin_1_2:
-   type: logical_camera
-   pose:
-     xyz: [-0.457372, -1.325077, 1.474698]
-     rpy: [0, 'pi/2', 'pi/2']
-
- # logical_camera_bin_2_3:
- #   type: logical_camera
- #   pose:
- #     xyz: [-1, -0.163713, 1.474698]
- #     rpy: [0, 'pi/2', 0]
-
- # logical_camera_bin_3_4:
- #   type: logical_camera
- #   pose:
- #     xyz: [-1, 0.78, 1.474698]
- #     rpy: [0, 'pi/2', 0]
 
  logical_camera_bin_5_6:
    type: logical_camera
    pose:
-     xyz: [-0.457372, -0.53557, 1.474698]
-     rpy: [0, 'pi/2', 'pi/2']
+     xyz: [-0.36, -1.15283, 1.474698]
+     rpy: ['-pi', 'pi/2', 'pi']
 
  logical_camera_bin_6_7:
    type: logical_camera
    pose:
-     xyz: [-0.457372, 0.230893, 1.474698]
-     rpy: [0, 'pi/2', 'pi/2']
+     xyz: [-0.36, -0.18, 1.474698]
+     rpy: ['-pi', 'pi/2', 'pi']
 
  logical_camera_bin_7_8:
    type: logical_camera
    pose:
-     xyz: [-0.457372, 1.003074, 1.474698]
-     rpy: [0, 'pi/2', 'pi/2']
+     xyz: [-0.36, 0.78, 1.474698]
+     rpy: ['-pi', 'pi/2', 'pi']
 
  logical_camera_agv_1:
    type: logical_camera
