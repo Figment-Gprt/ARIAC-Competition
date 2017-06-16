@@ -1151,17 +1151,31 @@ class ExecutePart:
                                                 part_orientation_at_tray, 
                                                 part_type,
                                                 solver_type=solver_type,
-                                                time_to_execute_action=time_to_execute_action,
+                                                time_to_execute_action=time_to_execute_action,                                                
                                                 accError=accError)
             if not success: 
                 attempt +=1           
                 rospy.loginfo("[ExecutePart]: failed. attempt#" + str(attempt))
+            else:
+                if("pulley" in part_type):
+                    rospy.sleep(0.5)
+                    success = self.move_wait_above_part(part_position_at_tray, 
+                                        part_orientation_at_tray, 
+                                        part_type,
+                                        solver_type=solver_type,
+                                        time_to_execute_action=0.5,
+                                        a_bit_above_value=-0.05,
+                                        accError=accError)
+                    if not success: 
+                        attempt +=1           
+                        rospy.loginfo("[ExecutePart]: failed. attempt#" + str(attempt))
 
         if not success:
             rospy.logerr("[ExecutePart]: deposit_at_tray failed")
             return False
         else:
             if(force_check_piece):
+                
                 grpOK = self.check_gripper(force_grp_sts)
                 if (not grpOK):
                     rospy.logerr("[ExecutePart]:deposit_at_tray - Gripper failed to complete the movement holding part!")
