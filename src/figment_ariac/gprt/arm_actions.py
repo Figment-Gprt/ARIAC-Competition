@@ -147,9 +147,11 @@ def go_down_until_get_piece(world_position, world_orientation, part_type,
         angles = solverBin(
             position, tfOri, part_type, ignore_height)
         angles[4]+=0.05
+        angles[5]+=0.03
         angles2 = solverBin(
             position2, tfOri, part_type, ignore_height)
         angles2[4]+=0.05
+
 
     elif solver_type == SolverType.AGV1:  
         rospy.loginfo(
