@@ -137,13 +137,15 @@ def depositOnTray1(pos, rot, object_type, ignore_height=False, adjust=False):
     Y_PIECE = pos[1]
     Z_PIECE = pos[2]
 
+    object_height = OBJECT_HEIGHT[object_type.upper()]
+    Z_PIECE+=object_height
     
-    if object_type == "pulley_part":
-        object_height = OBJECT_HEIGHT[object_type.upper()]
-        Z_PIECE+=((object_height*2))
-    else:
-        object_height = OBJECT_HEIGHT[object_type.upper()]
-        Z_PIECE+=object_height
+    # if object_type == "pulley_part":
+    #     object_height = OBJECT_HEIGHT[object_type.upper()]
+    #     Z_PIECE+=((object_height*2))
+    # else:
+    #     object_height = OBJECT_HEIGHT[object_type.upper()]
+    #     Z_PIECE+=object_height
         
 
     angle_var = (atan2(X_PIECE - X_BASE,Y_PIECE - Y_BASE) + atan2(WRIST_LENGTH,Y_PIECE - Y_BASE))
