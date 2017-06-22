@@ -307,7 +307,8 @@ class Scheduler:
 
         part_plan = working_part.plan
         if(part_plan is not None):
-            rospy.logerr("[Scheduler] get_plan_for_part working_part already has part_plan")    
+            rospy.logerr("[Scheduler] get_plan_for_part working_part already has part_plan - " + str(working_part))    
+            rospy.logerr("[Scheduler]: plan - )" + str(part_plan)) 
             return part_plan
         else:
             rospy.loginfo("[Scheduler] get_plan_for_part computing plan for working_part: " + str(working_part))    
@@ -401,18 +402,20 @@ class Scheduler:
         found_part_ok = False
         last_non_pu_plan = None
         use_belt = False
+        part_plan = None
         while(idx_parts < parts_number):
             working_part = working_kit.parts[idx_parts]
-            rospy.logdebug("\n[Scheduler] Looking for plan for: {}\n".format(working_part))
+            rospy.loginfo("\n[Scheduler] Looking for plan for: {}\n".format(working_part))
             if(working_part.get_status() is not order_utils.Status.DONE):
-                part_plan = self.get_plan_for_part(working_part)
-                if(part_plan is not None and part_plan.pick_piece is not None):
+                part_plan_t = self.get_plan_for_part(working_part)
+                if(part_plan_t is not None and part_plan_t.pick_piece is not None):
                     found_part_ok = True
-                    if(part_plan.pick_piece.origin is PickPlaces.BELT):	
+                    part_plan = part_plan_t                    
+                    if(part_plan_t.pick_piece.origin is PickPlaces.BELT):	
                         use_belt = True
                         break
                     elif("pulley" not in working_part.part_type):
-                        last_non_pu_plan = part_plan
+                        last_non_pu_plan = part_plan_t
             idx_parts+=1
 
         # working_part = self.get_frs_non_fin_part_from_kit(working_kit)
@@ -424,11 +427,12 @@ class Scheduler:
         # part_plan = self.get_plan_for_part(working_part)
 
         if(found_part_ok):
-            if(not use_belt and last_non_pu_plan is not None):
-                working_part.plan = last_non_pu_plan 
+            if(not use_belt and last_non_pu_plan is not None):                
+                last_non_pu_plan.part.plan = last_non_pu_plan
+                return last_non_pu_plan
             else:   
-                working_part.plan = part_plan
-            return part_plan
+                part_plan.part.plan = part_plan                
+                return part_plan
         else:
             return
         
