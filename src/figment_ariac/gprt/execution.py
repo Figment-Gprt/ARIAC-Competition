@@ -155,29 +155,30 @@ class ExecBelt:
                     solver = arm_actions.SolverType.AGV2
                     incrementY=0.1
                 success = self.exec_part.deposit_at_tray(desired_part_pose=desired_part_pose, part_type=part_type, tray_id=tray_id, force_check_piece=True, time_to_execute_action=1, accError=[0.009, 0.009, 0.009, 0.009,0.015, 0.015, 0.009, 0.009, 0.1])
-
+                rospy.loginfo("[ExecuteBeltPart]: step5 solver = {}".format(solver))
                 if not success:
                     rospy.loginfo("[ExecuteBeltPart]: step5 failed. Reseting")
                     rospy.loginfo("[ExecuteBeltPart][STEP5] - Move tool tip up")
                     arm_actions.moveToolTipZY(incrementZ=0.2, incrementY=incrementY, timeToGoal=0.3)
 
                     # waiting tf_manager update
-                    ros.sleep(2.5) # TODO: IMPROVE THIS SLEEP TO A BETTER THING
-                    camera_id, part_id = global_vars.tf_manager.find_part_name_in_belt(part_name=part_name, sub_dad=camera_name)
+                    camera_id, part_id = global_vars.tf_manager.find_part_name(part_name=part_name, sub_dad=camera_name)
                     rospy.loginfo("[ExecuteBeltPart]: DEBUG camera_id: {} ; part_id{}".format(camera_id, part_id))
                     if(len(camera_id) == 0 or len(part_id) == 0): #part not found
-                        rospy.loginfo("[ExecutePart]: step5 failed [part not found]. Reseting")
+                        rospy.loginfo("[ExecuteBeltPart]: step7 failed [part not found]. Reseting")
                         # arm_actions.moveToolTipZY(incrementZ=0.2, incrementY=incrementY, timeToGoal=0.2)
                         success = self.exec_part.move_to_tray(tray_id=tray_id, 
                                                     force_check_piece=False, 
                                                     force_grp_sts=False, 
                                                     time=1)
                         # rospy.loginfo("[ExecutePart]: DEBUG SLEEL \n\n\n")
+                        # rospy.sleep(10)
                         if not success:
                             #TODO MOVE UP A BIT
                             rospy.logerr("[ExecuteBeltPart]: step5 failed. Could not get back to AGV")
                         self.part_plan.part.reset()
                         return False    
+                    # rospy.sleep(1)
                     r = self.exec_part.find_part_any_agvs(part_id)#TODO any agv or a specific agv?
                     
                     if r is not None:
@@ -203,7 +204,7 @@ class ExecBelt:
                                                                     world_orientation=part_world_orientation, 
                                                                     part_type=part_type, 
                                                                     time=10, ignore_height=False, 
-                                                                    distance=0.005, solver_type=arm_actions.SolverType.AGV1,
+                                                                    distance=0.005, solver_type=solver,
                                                                     adjust=True)
                         
                             arm_actions.moveToolTipZY(0.3, incrementY, 1.4)
