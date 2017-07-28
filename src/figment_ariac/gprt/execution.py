@@ -564,10 +564,12 @@ class ExecBin:
                 rospy.loginfo("\n\n[ExecBin]: STEP 7 \n")
                 
                 if(self.part_plan.dest_tray_id == 1):
+                    rospy.logerr("\n\n\n[ExecBin]: step7 tray 1")                    
                     camera_name = AGVS_CAMERA["agv1"]
                     solver = arm_actions.SolverType.AGV1
                     incrementY=-0.1
                 elif(self.part_plan.dest_tray_id == 2): 
+                    rospy.logerr("\n\n\n[ExecBin]: step7 tray 2")                    
                     camera_name = AGVS_CAMERA["agv2"]
                     solver = arm_actions.SolverType.AGV2
                     incrementY=0.1
@@ -600,66 +602,80 @@ class ExecBin:
                         self.part_plan.part.reset()
                         return False    
                     # rospy.sleep(1)
-                    r = self.exec_part.find_part_any_agvs(part_id)#TODO any agv or a specific agv?
-                    
-                    if r is not None:
-                        part_world_position, part_world_orientation = r
 
-                        #print ("_____________________________________________________________________________")
-                        print ("\n\n\n\n " + str(part_world_position) + " \n\n\n\n\n")
-                        print ("\n\n\n\n " + str(part_world_orientation) + " \n\n\n\n\n")
-                        print ("\n\n\n\n " + str(part_type) + " \n\n\n\n\n") 
+                    if(self.part_plan.dest_tray_id == 1):
+                        faulty_sensor_msg = global_vars.faulty_sensor1
+                    else:
+                        faulty_sensor_msg = global_vars.faulty_sensor2
+
+                    falty = len(faulty_sensor_msg) > 0
+                    if not falty:
+                        rospy.logerr("\n\n[ExecBin]: step7 Not faulty")
+
+                        r = self.exec_part.find_part_any_agvs(part_id)#TODO any agv or a specific agv?
                         
-                        # success = self.exec_part.move_wait_above_part(part_world_position, part_world_orientation, part_type, solver, 0.2)
+                        if r is not None:
+                            part_world_position, part_world_orientation = r
 
-                        rospy.loginfo(
-                            "[ExecBin][STEP7] - Move Wait a bit above")
-                        success = self.exec_part.move_wait_above_part(part_world_position=part_world_position,
-                                                                      part_world_orientation=part_world_orientation,
-                                                                      part_type=part_type, solver_type=solver,
-                                                                      a_bit_above_value=0.25,
-                                                                      time_to_execute_action=1,
-                                                                      adjust=True)
+                            #print ("_____________________________________________________________________________")
+                            print ("\n\n\n\n " + str(part_world_position) + " \n\n\n\n\n")
+                            print ("\n\n\n\n " + str(part_world_orientation) + " \n\n\n\n\n")
+                            print ("\n\n\n\n " + str(part_type) + " \n\n\n\n\n") 
+                            
+                            # success = self.exec_part.move_wait_above_part(part_world_position, part_world_orientation, part_type, solver, 0.2)
 
-
-
-                        if success:
                             rospy.loginfo(
-                                "[ExecBin][STEP7] - go_down_until_get_piece")
-                            # TODO DEBUG reduce time, but do test. it cannot be too
-                            # fast
-                            success = arm_actions.go_down_until_get_piece(world_position=part_world_position,
-                                                                          world_orientation=part_world_orientation,
-                                                                          part_type=part_type,
-                                                                          time=3.5, ignore_height=False,
-                                                                          distance=0.005, solver_type=solver,
+                                "[ExecBin][STEP7] - Move Wait a bit above")
+                            success = self.exec_part.move_wait_above_part(part_world_position=part_world_position,
+                                                                          part_world_orientation=part_world_orientation,
+                                                                          part_type=part_type, solver_type=solver,
+                                                                          a_bit_above_value=0.25,
+                                                                          time_to_execute_action=1,
                                                                           adjust=True)
 
-                            arm_actions.moveToolTipZY(0.3, incrementY, 0.1)
 
-                            rospy.logerr("........................................................................")
-                            if success :
-                                rospy.logerr("....................SUCCESS................................")
-                                exec_step = 7 #We are coming back here
-                                jump = True
 
-                        if not success:
+                            if success:
+                                rospy.loginfo(
+                                    "[ExecBin][STEP7] - go_down_until_get_piece")
+                                # TODO DEBUG reduce time, but do test. it cannot be too
+                                # fast
+                                success = arm_actions.go_down_until_get_piece(world_position=part_world_position,
+                                                                              world_orientation=part_world_orientation,
+                                                                              part_type=part_type,
+                                                                              time=3.5, ignore_height=False,
+                                                                              distance=0.005, solver_type=solver,
+                                                                              adjust=True)
+
+                                arm_actions.moveToolTipZY(0.3, incrementY, 0.1)
+
+                                rospy.logerr("........................................................................")
+                                if success :
+                                    rospy.logerr("....................SUCCESS................................")
+                                    exec_step = 7 #We are coming back here
+                                    jump = True
+
+                            if not success:
+                                rospy.logerr("\n\n\n\n[ExecBin]: step7 FAILED ")
+                                rospy.logerr("[ExecBin]: ------------------------ ")
+                                rospy.logerr("[ExecBin]: RESETING PART.PLAN() ")
+                                self.exec_part.move_to_tray(tray_id=tray_id, force_check_piece=False, 
+                                    force_grp_sts=False, time=0.5)
+                                self.part_plan.part.reset()
+                                return False    
+
+                        else:
                             rospy.logerr("\n\n\n\n[ExecBin]: step7 FAILED ")
                             rospy.logerr("[ExecBin]: ------------------------ ")
                             rospy.logerr("[ExecBin]: RESETING PART.PLAN() ")
                             self.exec_part.move_to_tray(tray_id=tray_id, force_check_piece=False, 
-                                force_grp_sts=False, time=0.5)
+                                    force_grp_sts=False, time=0.5)
                             self.part_plan.part.reset()
-                            return False    
+                            return False   
 
                     else:
-                        rospy.logerr("\n\n\n\n[ExecBin]: step7 FAILED ")
-                        rospy.logerr("[ExecBin]: ------------------------ ")
-                        rospy.logerr("[ExecBin]: RESETING PART.PLAN() ")
-                        self.exec_part.move_to_tray(tray_id=tray_id, force_check_piece=False, 
-                                force_grp_sts=False, time=0.5)
-                        self.part_plan.part.reset()
-                        return False    
+                        rospy.loginfo("\n\n[ExecBin][ExecutePart]: STEP 7 - Part dropped and falty\n") 
+                        exec_step =+1 #STEP  - DONE
                 else:  
                     # rospy.loginfo("\n\n[ExecBin][ExecutePart]: STEP 7 - moveToolTipZY \n")                  
                     # arm_actions.moveToolTipZY(0.3, incrementY, 1.4)
