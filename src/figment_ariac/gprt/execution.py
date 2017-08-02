@@ -1178,7 +1178,7 @@ class ExecutePart:
                     rospy.loginfo("[ExecutePart]: deposit_at_tray pullet o:" + str(part_orientation_at_tray))
                     a_bit_above_value = 0
                     if(part_orientation_at_tray[0]!= 0 or part_orientation_at_tray[1] != 0): #TODO check not desired but how it is now
-                        a_bit_above_value = -0.05
+                        a_bit_above_value = 0
                     rospy.sleep(0.5)
                     success = self.move_wait_above_part(part_position_at_tray, 
                                         part_orientation_at_tray, 
