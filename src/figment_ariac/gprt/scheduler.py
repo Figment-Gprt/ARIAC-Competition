@@ -60,7 +60,7 @@ class PartPlan:
         self.pick_piece = pick_piece
         self.planning_score = -1
         # in quaternion representation 1 = PI
-        if (self.part.desired_pose.orientation.x == 1.0 or self.part.desired_pose.orientation.y == 1.0) and self.part.part_type == "pulley_part":
+        if (self.part.desired_pose.orientation.x != 0 or self.part.desired_pose.orientation.y != 0) and self.part.part_type == "pulley_part":
             self.to_flip = True
         else:
             self.to_flip = False

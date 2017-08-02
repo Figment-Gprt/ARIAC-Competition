@@ -154,7 +154,7 @@ class ExecBelt:
                     camera_name = AGVS_CAMERA["agv2"]
                     solver = arm_actions.SolverType.AGV2
                     incrementY=0.1
-                success = self.exec_part.deposit_at_tray(desired_part_pose=desired_part_pose, part_type=part_type, tray_id=tray_id, force_check_piece=True, time_to_execute_action=1, accError=[0.009, 0.009, 0.009, 0.009,0.015, 0.015, 0.009, 0.009, 0.1])
+                success = self.exec_part.deposit_at_tray(desired_part_pose=desired_part_pose, part_type=part_type, tray_id=tray_id, force_check_piece=True, time_to_execute_action=1, accError=[0.009, 0.009, 0.009, 0.009,0.015, 0.015, 0.009, 0.009, 0.1], flipped_part = self.part_plan.to_flip)
                 rospy.loginfo("[ExecuteBeltPart]: step5 solver = {}".format(solver))
                 if not success:
                     rospy.loginfo("[ExecuteBeltPart]: step5 failed. Reseting")
@@ -574,7 +574,7 @@ class ExecBin:
                     solver = arm_actions.SolverType.AGV2
                     incrementY=0.1
                 rospy.loginfo("\n\n[ExecBin]: STEP 7 - deposit_at_tray \n")
-                success = self.exec_part.deposit_at_tray(desired_part_pose=desired_part_pose, part_type=part_type, tray_id=tray_id, force_check_piece=True, time_to_execute_action=1)
+                success = self.exec_part.deposit_at_tray(desired_part_pose=desired_part_pose, part_type=part_type, tray_id=tray_id, force_check_piece=True, time_to_execute_action=1, flipped_part = self.part_plan.to_flip)
                 rospy.loginfo("\n\n[ExecBin]: STEP 7 - deposit_at_tray sucess: {} \n".format(success))
                 #TODO Check if falty
 
@@ -1147,7 +1147,7 @@ class ExecutePart:
             else:
                 return True
 
-    def deposit_at_tray(self, desired_part_pose, part_type, tray_id, force_check_piece=False, force_grp_sts=True, time_to_execute_action=1, accError=[0.009, 0.009, 0.009, 0.009,0.015, 0.015, 0.01, 0.009, 0.009]):
+    def deposit_at_tray(self, desired_part_pose, part_type, tray_id, force_check_piece=False, force_grp_sts=True, time_to_execute_action=1, accError=[0.009, 0.009, 0.009, 0.009,0.015, 0.015, 0.01, 0.009, 0.009], flipped_part=False):
         # calculate position of the part at tray
         solver_type = arm_actions.SolverType.AGV1 if tray_id == 1 else arm_actions.SolverType.AGV2
         part_position_at_tray, part_orientation_at_tray  = calculate_order_position(desired_part_pose, tray_id)
@@ -1177,8 +1177,10 @@ class ExecutePart:
                 if("pulley" in part_type):
                     rospy.loginfo("[ExecutePart]: deposit_at_tray pullet o:" + str(part_orientation_at_tray))
                     a_bit_above_value = 0
-                    if(part_orientation_at_tray[0]!= 0 or part_orientation_at_tray[1] != 0): #TODO check not desired but how it is now
-                        a_bit_above_value = -0.05
+                    #flipped_part = self.part_plan.to_flip
+                    #if(part_orientation_at_tray[0]!= 0 or part_orientation_at_tray[1] != 0): #TODO check not desired but how it is now
+                    if(flipped_part): 
+                        a_bit_above_value = -0.01
                     rospy.sleep(0.5)
                     success = self.move_wait_above_part(part_position_at_tray, 
                                         part_orientation_at_tray, 

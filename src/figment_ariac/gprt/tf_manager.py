@@ -19,7 +19,7 @@ class TfManager:
         self.graph = Graph()
         self.part_id_black_list = []
         self.buffered_fathers = []
-        self.long_buffer_time = timeBuffer*10
+        self.long_buffer_time = timeBuffer*13
 
 
     def add_to_buffer(self, father):
