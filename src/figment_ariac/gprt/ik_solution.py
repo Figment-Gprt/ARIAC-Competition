@@ -121,7 +121,7 @@ def solverBelt(pos, rot, object_type):
     angle_wrist = (pi/2) + (pi - (B1+B2))
 
     angles = [angle_elbow, Y_PIECE - WRIST_LENGTH,
-             angle_shoulder, 0.0, angle_wrist, -1.57, 1.57 + rot[2]]
+             angle_shoulder, 0.0, angle_wrist, -1.57, -rot[2]-1.57]
     # angles = [2.51, Y_PIECE - WRIST_LENGTH, -1.76, 0, 3.69, -1.56, 0.0]
 
     return angles
