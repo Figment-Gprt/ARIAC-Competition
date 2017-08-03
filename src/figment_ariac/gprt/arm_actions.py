@@ -123,7 +123,7 @@ def go_to_position_a_bit_above_part(world_position, world_orientation, part_type
     elif solver_type == SolverType.AGV2:
         world_position_above_part[2] += 0.05
         angles = depositOnTray2(
-            world_position_above_part, world_orientation, part_type, adjust=adjust)
+            world_position_above_part, world_orientation, part_type)
     elif solver_type == SolverType.BELT:
         angles = solverBelt(
             world_position_above_part, world_orientation, part_type)
@@ -164,9 +164,9 @@ def go_down_until_get_piece(world_position, world_orientation, part_type,
             position2, tfOri, part_type, ignore_height=ignore_height, adjust=adjust) 
     elif solver_type == SolverType.AGV2:
         angles = depositOnTray2(
-            position, tfOri, part_type, ignore_height=ignore_height, adjust=adjust)
+            position, tfOri, part_type, ignore_height=ignore_height)
         angles2 = depositOnTray2(
-            position2, tfOri, part_type, ignore_height=ignore_height, adjust=adjust)        
+            position2, tfOri, part_type, ignore_height=ignore_height)        
 
 
 

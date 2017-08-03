@@ -184,7 +184,7 @@ def depositOnTray1(pos, rot, object_type, ignore_height=False, adjust=False):
 
     return angles
 
-def depositOnTray2(pos, rot, object_type, ignore_height=False, adjust=False):
+def depositOnTray2(pos, rot, object_type, ignore_height=False):
     X_PIECE = pos[0]
     Y_PIECE = abs(pos[1])
     Z_PIECE = pos[2]
@@ -225,12 +225,8 @@ def depositOnTray2(pos, rot, object_type, ignore_height=False, adjust=False):
     angle_shoulder_lift = (pi/2) - (A1 + C2)
     angle_wrist = (pi/2) + (pi - (B1+B2))
 
-    if adjust:
-        angles = [angle_elbow, -2.10, angle_shoulder_lift,
-                  angle_shoulder_pan, angle_wrist, -1.57, 3.1415-rot[2]+angle_var]
-    else:
-        angles = [angle_elbow, -2.10, angle_shoulder_lift, 
-                  angle_shoulder_pan, angle_wrist, -1.57, 3.1415-rot[2]+angle_var]
+    angles = [angle_elbow, -2.10, angle_shoulder_lift,
+              angle_shoulder_pan, angle_wrist, -1.57, 3.1415-rot[2]+angle_var]
 
     return angles
 
