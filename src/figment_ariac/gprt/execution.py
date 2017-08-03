@@ -588,7 +588,7 @@ class ExecBin:
                     camera_id, part_id = global_vars.tf_manager.find_part_name(part_name=part_name, sub_dad=camera_name)
                     rospy.loginfo("[ExecBin]: DEBUG camera_id: {} ; part_id{}".format(camera_id, part_id))
                     if(len(camera_id) == 0 or len(part_id) == 0): #part not found
-                        rospy.loginfo("[ExecBin]: step7 failed [part not found]. Reseting")
+                        rospy.logerr("\n\n[ExecBin]: step7 failed [part not found]. Reseting\n\n")
                         # arm_actions.moveToolTipZY(incrementZ=0.2, incrementY=incrementY, timeToGoal=0.2)
                         success = self.exec_part.move_to_tray(tray_id=tray_id, 
                                                     force_check_piece=False, 
@@ -602,6 +602,8 @@ class ExecBin:
                         self.part_plan.part.reset()
                         return False    
                     # rospy.sleep(1)
+
+                    rospy.logerr("\n\n[ExecBin]: step7 failed [part dropped on tray].\n\n")
 
                     if(self.part_plan.dest_tray_id == 1):
                         faulty_sensor_msg = global_vars.faulty_sensor1
@@ -1442,19 +1444,24 @@ class ExecutePart:
         success = False
         # if part is on the bin:
         if "bin" in part_origin:
+            rospy.loginfo("\n\n\n[Execution] START-BIN partPlan: {}\n\n\n".format(self.partPlan))
             success = self.execute_bin(part_origin)
 
         # if part is on the belt
         elif "belt" in part_origin:
+            rospy.loginfo("\n\n\n[Execution] START-BELT partPlan: {}\n\n\n".format(self.partPlan))
             success = self.execute_belt(part_origin)
 
                 # if part is on the tray
         elif "fail" in part_origin:
+            rospy.loginfo("\n\n\n[Execution] START-FAILF partPlan: {}\n\n\n".format(self.partPlan))
             success = self.partPlan.part.set_done()
 
         # if part is on the tray
+
         elif "tray" in part_origin:
-            pass
+            rospy.loginfo("\n\n\n[Execution] START-TRAY partPlan: {}\n\n\n".format(self.partPlan))
+            success = False
 
         return success
 

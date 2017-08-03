@@ -211,14 +211,15 @@ class Scheduler:
             if part_plan is None:
                 rospy.loginfo("[Scheduler] No possible Part Plan yet...")
                 rospy.loginfo("[Scheduler] Sleeping...")
-                rospy.sleep(1)
+                rospy.sleep(2)
             else:
                 execute_part = execution.ExecutePart(part_plan)
                 status = execute_part.execute()
+                rospy.loginfo("\n\n[Scheduler] execute_part.execute = {}\n\n".format(status))
                 # part deposited successfully at tray
                 if status:
                     part_plan.part.set_done()
-                    rospy.loginfo("[Scheduler] Part from kit deposited successfully")
+                    rospy.loginfo("[Scheduler] Part from kit deposited successfully - {}".format(part_plan))
                     
                     if part_plan.part.parent_kit.get_status() == order_utils.Status.DONE:
                         rospy.loginfo("[Scheduler] Kit completed successfully")
@@ -239,7 +240,7 @@ class Scheduler:
                     if(part_plan.part.failed_count > 9):
                         part_plan.part.set_done()  
                         if part_plan.part.parent_kit.get_status() == order_utils.Status.DONE:
-                            rospy.loginfo("[Scheduler] Kit completed successfully")
+                            rospy.logerr("[Scheduler] Kit completed in failure state")
                             rospy.loginfo("[Scheduler] Sending AGV")
                             success_agv_cmd = execution.send_agv(part_plan.part.parent_kit, part_plan.dest_tray_id)
                             if(success_agv_cmd):
@@ -253,6 +254,7 @@ class Scheduler:
                                 if(success_agv_cmd):
                                     part_plan.kit_plan.working_agv.release()  
                     else:
+                        rospy.logerr("\n\n[Scheduler] Part Plan failed\n\n")
                         part_plan.part.failed_count+=1 #TODO force a time before attempting this part again before a completly failure
 
             self.check_time_out_and_complete()
@@ -291,7 +293,7 @@ class Scheduler:
 
     def get_plan_for_kit(self, kit):
 
-        rospy.logerr("[WorkingAgv] get_plan_for_kit not implemented yet")
+        #rospy.logerr("[WorkingAgv] get_plan_for_kit not implemented yet")
         working_agv = self.get_available_agv_and_reserve(kit)
         while(working_agv is None): #TODO improve later. We do not actually need the agv for planning
             rospy.logerr("[Scheduler] No available AGV")
@@ -320,12 +322,14 @@ class Scheduler:
             working_part.planning_attempts = 1
         
         elapsed_from_last = rospy.Time.now() - working_part.time_last_chk_attempt_plan
-        if(elapsed_from_last > PLAN_STEP_CNT):
-            working_part.planning_attempts += 1  
-            working_part.time_last_chk_attempt_plan = rospy.Time.now()
+        # if(elapsed_from_last > PLAN_STEP_CNT):              
+        #     working_part.planning_attempts += 1  
+        working_part.time_last_chk_attempt_plan = rospy.Time.now()
+            #rospy.logerr("\n\n[Scheduler] working_part:{} \n\n planning_attempts: {}\n\n time_last_chk_attempt_plan:{}\n\n".format(working_part, working_part.planning_attempts, working_part.time_last_chk_attempt_plan))    
+            
 
-        if(working_part.planning_attempts > MAX_PLAN_STEP_CNT):
-
+        if(working_part.failed_count > MAX_PLAN_ERR or working_part.planning_attempts> MAX_PLAN_STEP_CNT):
+            rospy.logerr("\n##############\n\n###########\n[Scheduler]: get_plan_for_part failed PERMANENTLY\nreason:failed_count > MAX_PLAN_STEP_CNT: {}/{}\n\n\n\n".format(working_part.failed_count,MAX_PLAN_STEP_CNT)) 
             pp = PartPlan(part = working_part, 
                             pick_piece=PickPiece(PickPlaces.FAIL, None, None), kit_plan =  parent_kit.plan)
             
@@ -370,6 +374,10 @@ class Scheduler:
         if pick_piece is not None:
             part_plan = PartPlan(part = working_part, 
                             pick_piece=pick_piece, kit_plan = kit_plan)
+            working_part.planning_attempts = 0
+
+        else:
+            working_part.planning_attempts+=1
 
         rospy.loginfo("[Scheduler]: " + str(part_plan))    
 
@@ -404,9 +412,9 @@ class Scheduler:
         use_belt = False
         part_plan = None
         while(idx_parts < parts_number):
-            working_part = working_kit.parts[idx_parts]
-            rospy.loginfo("\n[Scheduler] Looking for plan for: {}\n".format(working_part))
+            working_part = working_kit.parts[idx_parts]            
             if(working_part.get_status() is not order_utils.Status.DONE):
+                rospy.loginfo("\n[Scheduler] Looking for plan for: {}\n".format(working_part))
                 part_plan_t = self.get_plan_for_part(working_part)
                 if(part_plan_t is not None and part_plan_t.pick_piece is not None):
                     found_part_ok = True

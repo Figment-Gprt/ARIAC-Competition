@@ -19,7 +19,7 @@ class TfManager:
         self.graph = Graph()
         self.part_id_black_list = []
         self.buffered_fathers = []
-        self.long_buffer_time = timeBuffer*13
+        self.long_buffer_time = timeBuffer*4
 
 
     def add_to_buffer(self, father):
@@ -124,10 +124,13 @@ class TfManager:
             #         rospy.loginfo("[find_part_name] values: " + str(values) + "\n\n") 
             found = False 
             for k in self.transforms_dynamic.keys():
-                rospy.loginfo("[find_part_name] test fdad/k: " + str(sub_dad) + "/" + str(k))  
+                #rospy.loginfo("[find_part_name] test fdad/k: " + str(sub_dad) + "/" + str(k))  
                 if sub_dad in k:
                     rospy.loginfo("[find_part_name] found sub_dad/k: " + str(sub_dad) + "/" + str(k))
                     fdad = k
+                    if(debug and 'belt' in k):
+                        rospy.logerr("\n\n\n\n[find_part_name]: KEYS: {} \n\n\n\n".format(self.transforms_dynamic[fdad].keys()))
+                        
                     # less_priority = True
                     for k_child in self.transforms_dynamic[fdad].keys():
                         if part_name in k_child and k_child not in self.part_id_black_list:
@@ -297,17 +300,29 @@ class TfManager:
             
             newestSec = max(newestSec, frame.header.stamp.secs)
             
-
+        
         for k in self.transforms_dynamic.keys():
             for j in self.transforms_dynamic[k].keys():
+                isBelt = "logical_camera_belt_1" in j
                 if k in self.buffered_fathers:
-                    if newestSec - self.transforms_dynamic[k][j]['secs'] > self.timeBuffer and not self.transforms_dynamic[k][j]['dirty']:
+                    temp_buff_time = self.timeBuffer
+                    if(isBelt):                        
+                        temp_buff_time *=15
+                    if newestSec - self.transforms_dynamic[k][j]['secs'] > temp_buff_time and not self.transforms_dynamic[k][j]['dirty']:
                         self.transforms_dynamic[k][j]['dirty']  = True
-                    elif newestSec - self.transforms_dynamic[k][j]['secs'] > self.timeBuffer and self.transforms_dynamic[k][j]['dirty']:
+                    elif newestSec - self.transforms_dynamic[k][j]['secs'] > temp_buff_time and self.transforms_dynamic[k][j]['dirty']:
+                        #if(isBelt):
+                        #    rospy.logerr("\n\n\n[TFMANAGER] Removing entry:{} \nframe.header.frame_id:{}\n\n".format(self.transforms_dynamic[k][j], j))
                         del self.transforms_dynamic[k][j]
                         self.graph.delNode(j)
                 else:
-                    if newestSec - self.transforms_dynamic[k][j]['secs'] > self.long_buffer_time:
+                    temp_buff_time = self.long_buffer_time
+                    if(isBelt):                        
+                        temp_buff_time *=15
+
+                    if newestSec - self.transforms_dynamic[k][j]['secs'] > temp_buff_time:
+                        #if(isBelt):
+                        #    rospy.logerr("\n\n\n[TFMANAGER] Removing entry:{} \n\n\n".format(self.transforms_dynamic[k][j]))
                         del self.transforms_dynamic[k][j]
                         self.graph.delNode(j)
                     
@@ -351,6 +366,7 @@ class Graph:
 
     def delNode(self, node):
         self._nodes.remove(node)
+        #rospy.logerr("\n\n\n[TFMANAGER] Removing Node:{} \n\n\n".format(node))
         del self._graph[node]
 
     def addEdge(self, nodeA, nodeB, directed=True):
