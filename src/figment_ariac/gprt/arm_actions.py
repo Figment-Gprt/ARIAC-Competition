@@ -117,9 +117,11 @@ def go_to_position_a_bit_above_part(world_position, world_orientation, part_type
         angles = solverBin(
             world_position_above_part, world_orientation, part_type, ignore_height)
     elif solver_type == SolverType.AGV1:
+        world_position_above_part[2] += 0.05
         angles = depositOnTray1(
             world_position_above_part, world_orientation, part_type, adjust=adjust)
     elif solver_type == SolverType.AGV2:
+        world_position_above_part[2] += 0.05
         angles = depositOnTray2(
             world_position_above_part, world_orientation, part_type, adjust=adjust)
     elif solver_type == SolverType.BELT:
