@@ -13,7 +13,7 @@ def solverBin(pos, rot, object_type, ignore_height=False):
     Y_PIECE = pos[1]
     Z_PIECE = pos[2]
 
-    object_height = OBJECT_HEIGHT[object_type.upper()]
+    object_height = OBJECT_HEIGHT[object_type.upper()] if object_type.upper() in OBJECT_HEIGHT else 0
     if(not ignore_height):
         Z_PIECE+=object_height
 
@@ -103,7 +103,7 @@ def solverBelt(pos, rot, object_type):
     Y_PIECE = pos[1]
     Z_PIECE = pos[2]
 
-    object_height = OBJECT_HEIGHT[object_type.upper()]
+    object_height = OBJECT_HEIGHT[object_type.upper()] if object_type.upper() in OBJECT_HEIGHT else 0
     Z_PIECE+=object_height
 
     T2 = (X_PIECE - X_BASE) - H_WRIST
@@ -137,7 +137,7 @@ def depositOnTray1(pos, rot, object_type, ignore_height=False, adjust=False):
     Y_PIECE = pos[1]
     Z_PIECE = pos[2]
 
-    object_height = OBJECT_HEIGHT[object_type.upper()]
+    object_height = OBJECT_HEIGHT[object_type.upper()] if object_type.upper() in OBJECT_HEIGHT else 0
     Z_PIECE+=object_height
     
     # if object_type == "pulley_part":
@@ -189,7 +189,7 @@ def depositOnTray2(pos, rot, object_type, ignore_height=False):
     Y_PIECE = abs(pos[1])
     Z_PIECE = pos[2]
 
-    object_height = OBJECT_HEIGHT[object_type.upper()]
+    object_height = OBJECT_HEIGHT[object_type.upper()] if object_type.upper() in OBJECT_HEIGHT else 0
     Z_PIECE+=object_height
 
     # if object_type == "pulley_part":
